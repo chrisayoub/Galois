@@ -38,6 +38,12 @@ struct BCData {
   galois::CopyableAtomic<float> dependencyValue;
 };
 
+// CUDA
+#ifdef __GALOIS_HET_CUDA__
+#include "bc_mr_cuda.h"
+struct CUDA_Context* cuda_ctx;
+#endif
+
 /******************************************************************************/
 /* Declaration of command line arguments */
 /******************************************************************************/
@@ -114,17 +120,22 @@ galois::graphs::GluonSubstrate<Graph>* syncSubstrate;
  * @param graph Local graph to operate on
  */
 void InitializeGraph(Graph& graph) {
-  const auto& allNodes = graph.allNodesRange();
+	const auto& allNodes = graph.allNodesRange();
 
-  galois::do_all(
-      galois::iterate(allNodes.begin(), allNodes.end()),
-      [&](GNode curNode) {
-        NodeData& cur_data = graph.getData(curNode);
-        cur_data.sourceData.resize(vectorSize);
-        cur_data.bc = 0.0;
-      },
-      galois::loopname(syncSubstrate->get_run_identifier("InitializeGraph").c_str()),
-      galois::no_stats()); // Only stats the runtime by loopname
+#ifdef __GALOIS_HET_CUDA__
+	if (personality == GPU_CUDA) {
+		InitializeGraph_allNodes_cuda(cuda_ctx);
+	} else if (personality == CPU)
+#endif
+	galois::do_all(
+	  galois::iterate(allNodes.begin(), allNodes.end()),
+	  [&](GNode curNode) {
+		NodeData& cur_data = graph.getData(curNode);
+		cur_data.sourceData.resize(vectorSize);
+		cur_data.bc = 0.0;
+	  },
+	  galois::loopname(syncSubstrate->get_run_identifier("InitializeGraph").c_str()),
+	  galois::no_stats()); // Only stats the runtime by loopname
 }
 
 /**
