@@ -46,6 +46,8 @@ void reset_CUDA_context(struct CUDA_Context* ctx) {
 	ctx->num_shortest_paths.data.zero_gpu();
 }
 
+// MARK: Anything above here gets used
+
 void get_bitset_betweeness_centrality_cuda(struct CUDA_Context* ctx, uint64_t* bitset_compute) {
 	ctx->betweeness_centrality.is_updated.cpu_rd_ptr()->copy_to_cpu(bitset_compute);
 }
@@ -58,6 +60,8 @@ void bitset_betweeness_centrality_reset_cuda(struct CUDA_Context* ctx, size_t be
 	reset_bitset_field(&ctx->betweeness_centrality, begin, end);
 }
 
+
+// MARK: This gets used
 float get_node_betweeness_centrality_cuda(struct CUDA_Context* ctx, unsigned LID) {
 	float *betweeness_centrality = ctx->betweeness_centrality.data.cpu_rd_ptr();
 	return betweeness_centrality[LID];
@@ -138,6 +142,8 @@ void get_bitset_current_length_cuda(struct CUDA_Context* ctx, uint64_t* bitset_c
 	ctx->current_length.is_updated.cpu_rd_ptr()->copy_to_cpu(bitset_compute);
 }
 
+
+// MARK: This gets used
 void bitset_current_length_reset_cuda(struct CUDA_Context* ctx) {
 	ctx->current_length.is_updated.cpu_rd_ptr()->reset();
 }
@@ -226,6 +232,8 @@ void get_bitset_dependency_cuda(struct CUDA_Context* ctx, uint64_t* bitset_compu
 	ctx->dependency.is_updated.cpu_rd_ptr()->copy_to_cpu(bitset_compute);
 }
 
+
+// MARK: This gets used
 void bitset_dependency_reset_cuda(struct CUDA_Context* ctx) {
 	ctx->dependency.is_updated.cpu_rd_ptr()->reset();
 }
@@ -314,6 +322,8 @@ void get_bitset_num_shortest_paths_cuda(struct CUDA_Context* ctx, uint64_t* bits
 	ctx->num_shortest_paths.is_updated.cpu_rd_ptr()->copy_to_cpu(bitset_compute);
 }
 
+
+// MARK: This gets used
 void bitset_num_shortest_paths_reset_cuda(struct CUDA_Context* ctx) {
 	ctx->num_shortest_paths.is_updated.cpu_rd_ptr()->reset();
 }
