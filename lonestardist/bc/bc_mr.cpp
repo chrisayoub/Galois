@@ -61,7 +61,19 @@ static cll::opt<unsigned int> vectorSize("vectorSize",
                                 cll::init(0), cll::Hidden);
 
 // moved here so MRBCTree has access to numSourcesPerRound
-#include "bc_mr_common.h"
+#include "mrbc_tree.h"
+
+// type of short path
+using ShortPathType = double;
+
+/**
+ * Structure for holding data calculated during BC
+ */
+struct BCData {
+  uint32_t minDistance;
+  ShortPathType shortPathCount;
+  galois::CopyableAtomic<float> dependencyValue;
+};
 
 // CUDA
 #ifdef __GALOIS_HET_CUDA__

@@ -7,11 +7,21 @@
 #include "kernels/reduce.cuh"
 #include "csr_graph.h"
 #include "galois/runtime/cuda/DeviceSync.h"
-#include "bc_mr_common.h"
+#include "atomic_helpers.h"
 
 #define TB_SIZE 256
 
 void kernel_sizing(CSRGraph &, dim3 &, dim3 &);
+
+/**
+ * Structure for holding data calculated during BC
+ */
+struct BCData {
+  uint32_t minDistance;
+  ShortPathType shortPathCount;
+  // Treat this as atomic! Use atomic_helpers.h
+  float dependencyValue;
+};
 
 struct CUDA_Context : public CUDA_Context_Common {
 	// Array of BCData, will be dynamically allocated on GPU
