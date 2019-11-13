@@ -8,10 +8,14 @@
 #include "csr_graph.h"
 #include "galois/runtime/cuda/DeviceSync.h"
 #include "atomic_helpers.h"
+#include "mrbc_tree_cuda.cuh"
 
 #define TB_SIZE 256
 
 void kernel_sizing(CSRGraph &, dim3 &, dim3 &);
+
+// type of short path
+using ShortPathType = double;
 
 /**
  * Structure for holding data calculated during BC
@@ -27,7 +31,7 @@ struct CUDA_Context : public CUDA_Context_Common {
 	// Array of BCData, will be dynamically allocated on GPU
 	struct CUDA_Context_Field<BCData*> sourceData;
 	// Distance map. TODO replace so uses CUDA-compatible hashmap
-	struct CUDA_Context_Field<MRBCTree> dTree;
+	struct CUDA_Context_Field<CUDATree> dTree;
 	// Final bc value
 	struct CUDA_Context_Field<float> bc;
 	// Index that needs to be pulled in a round
