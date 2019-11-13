@@ -6,24 +6,20 @@
 #include "thread_work.h"
 #include "kernels/reduce.cuh"
 #include "csr_graph.h"
-
-#include <galois/DistGalois.h>
-#include "galois/DReducible.h"
-
-#include "mrbc_tree.h"
+#include "galois/runtime/cuda/DeviceSync.h"
 
 #define TB_SIZE 256
 
 void kernel_sizing(CSRGraph &, dim3 &, dim3 &);
 
 struct CUDA_Context : public CUDA_Context_Common {
-	// TODO replace with something else, such as array instead of Vector
-	struct CUDA_Context_Field<galois::gstl::Vector<BCData>> sourceData;
-	// distance map. TODO replace so uses CUDA-compatable hashmap
+	// Array of BCData, will be dynamically allocated on GPU
+	struct CUDA_Context_Field<BCData*> sourceData;
+	// Distance map. TODO replace so uses CUDA-compatible hashmap
 	struct CUDA_Context_Field<MRBCTree> dTree;
-	// final bc value
+	// Final bc value
 	struct CUDA_Context_Field<float> bc;
-	// index that needs to be pulled in a round
+	// Index that needs to be pulled in a round
 	struct CUDA_Context_Field<uint32_t> roundIndexToSend;
 };
 

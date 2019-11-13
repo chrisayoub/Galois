@@ -38,12 +38,6 @@ struct BCData {
   galois::CopyableAtomic<float> dependencyValue;
 };
 
-// CUDA
-#ifdef __GALOIS_HET_CUDA__
-#include "bc_mr_cuda.h"
-struct CUDA_Context* cuda_ctx;
-#endif
-
 /******************************************************************************/
 /* Declaration of command line arguments */
 /******************************************************************************/
@@ -80,6 +74,12 @@ static cll::opt<unsigned int> vectorSize("vectorSize",
 
 // moved here so MRBCTree has access to numSourcesPerRound
 #include "mrbc_tree.h"
+
+// CUDA
+#ifdef __GALOIS_HET_CUDA__
+#include "bc_mr_cuda.h"
+struct CUDA_Context* cuda_ctx;
+#endif
 
 /******************************************************************************/
 /* Graph structure declarations */
