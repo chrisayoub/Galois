@@ -7,6 +7,7 @@
 #include "kernels/reduce.cuh"
 #include "csr_graph.h"
 #include "galois/runtime/cuda/DeviceSync.h"
+#include "bc_mr_common.h"
 
 #define TB_SIZE 256
 

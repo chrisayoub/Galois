@@ -16,7 +16,7 @@ void InitializeGraph(CSRGraph graph, unsigned int __begin, unsigned int __end,
   }
 }
 
-void InitializeGraph_cuda(unsigned int  __begin, unsigned int  __end, struct CUDA_Context*  ctx,
+void InitializeGraph_cuda(unsigned int  __begin, unsigned int  __end, struct CUDA_Context* ctx,
 		unsigned int vectorSize)
 {
   dim3 blocks;
@@ -30,7 +30,7 @@ void InitializeGraph_cuda(unsigned int  __begin, unsigned int  __end, struct CUD
 
   // Init sourceData array to new array of size vectorSize
   // Number of nodes * array size for each node
-  ctx->sourceData.data = Shared<BCData>((size_t) ((__end - __begin) * vectorSize));
+  ctx->sourceData.data = Shared<BCData*>((size_t) ((__end - __begin) * vectorSize));
   // Ensure accessible via GPU
   ctx->sourceData.data.gpu_wr_ptr();
 
