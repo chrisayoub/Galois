@@ -1,3 +1,6 @@
+cuda_add_executable(test_slab_hash test_slab_hash.cu
+    OPTIONS ${GENCODE} ${CUDA_VERBOSE_PTXAS})
+
 distApp(bc_level)
 testDistSyncOnlyApp(bc_level rmat15 ${BASEINPUT}/scalefree/rmat15.gr -graphTranspose=${BASEINPUT}/scalefree/rmat15.tgr -singleSource)
 
