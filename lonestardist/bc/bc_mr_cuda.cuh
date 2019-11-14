@@ -49,19 +49,36 @@ bool init_CUDA_context(struct CUDA_Context* ctx, int device) {
 	return init_CUDA_context_common(ctx, device);
 }
 
-// TODO not needed?
-//void load_graph_CUDA(struct CUDA_Context* ctx, MarshalGraph &g, unsigned num_hosts) {
-//	load_graph_CUDA_common(ctx, g, num_hosts);
-//	load_graph_CUDA_field(ctx, &ctx->betweeness_centrality, num_hosts);
-//	load_graph_CUDA_field(ctx, &ctx->current_length, num_hosts);
-//	load_graph_CUDA_field(ctx, &ctx->dependency, num_hosts);
-//	load_graph_CUDA_field(ctx, &ctx->num_shortest_paths, num_hosts);
-//	reset_CUDA_context(ctx);
-//}
+void load_graph_CUDA(struct CUDA_Context* ctx, MarshalGraph &g, unsigned num_hosts) {
+	load_graph_CUDA_common(ctx, g, num_hosts);
+	load_graph_CUDA_field(ctx, &ctx->sourceData, num_hosts);
+	load_graph_CUDA_field(ctx, &ctx->dTree, num_hosts);
+	load_graph_CUDA_field(ctx, &ctx->bc, num_hosts);
+	load_graph_CUDA_field(ctx, &ctx->roundIndexToSend, num_hosts);
+	reset_CUDA_context(ctx);
+}
 
 void reset_CUDA_context(struct CUDA_Context* ctx) {
 	ctx->sourceData.data.zero_gpu();
 	ctx->dTree.data.zero_gpu();
 	ctx->bc.data.zero_gpu();
 	ctx->roundIndexToSend.data.zero_gpu();
+}
+
+// Macro functions
+
+void get_bitset_minDistances_cuda(struct CUDA_Context* ctx, uint64_t* bitset_compute) {
+//	ctx->current_length.is_updated.cpu_rd_ptr()->copy_to_cpu(bitset_compute);
+}
+
+void bitset_minDistances_reset_cuda(struct CUDA_Context* ctx, size_t begin, size_t end) {
+//	ctx->dependency.is_updated.cpu_rd_ptr()->reset();
+}
+
+void get_bitset_dependency_cuda(struct CUDA_Context* ctx, uint64_t* bitset_compute) {
+//	ctx->current_length.is_updated.cpu_rd_ptr()->copy_to_cpu(bitset_compute);
+}
+
+void bitset_dependency_reset_cuda(struct CUDA_Context* ctx, size_t begin, size_t end) {
+//	ctx->dependency.is_updated.cpu_rd_ptr()->reset();
 }

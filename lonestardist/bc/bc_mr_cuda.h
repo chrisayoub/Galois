@@ -2,3 +2,10 @@
 #include "galois/cuda/HostDecls.h"
 
 void InitializeGraph_allNodes_cuda(struct CUDA_Context* ctx, unsigned int vectorSize);
+
+// Macros for sync structures
+void get_bitset_minDistances_cuda(struct CUDA_Context* ctx, uint64_t* bitset_compute);
+void bitset_minDistances_reset_cuda(struct CUDA_Context* ctx, size_t begin, size_t end);
+
+void get_bitset_dependency_cuda(struct CUDA_Context* ctx, uint64_t* bitset_compute);
+void bitset_dependency_reset_cuda(struct CUDA_Context* ctx, size_t begin, size_t end);
