@@ -26,6 +26,18 @@ constexpr static const char* const REGION_NAME = "MRBC";
 
 #include <iostream>
 
+// type of short path
+using ShortPathType = double;
+
+/**
+ * Structure for holding data calculated during BC
+ */
+struct BCData {
+  uint32_t minDistance;
+  ShortPathType shortPathCount;
+  galois::CopyableAtomic<float> dependencyValue;
+};
+
 /******************************************************************************/
 /* Declaration of command line arguments */
 /******************************************************************************/
@@ -62,18 +74,6 @@ static cll::opt<unsigned int> vectorSize("vectorSize",
 
 // moved here so MRBCTree has access to numSourcesPerRound
 #include "mrbc_tree.h"
-
-// type of short path
-using ShortPathType = double;
-
-/**
- * Structure for holding data calculated during BC
- */
-struct BCData {
-  uint32_t minDistance;
-  ShortPathType shortPathCount;
-  galois::CopyableAtomic<float> dependencyValue;
-};
 
 // CUDA
 #ifdef __GALOIS_HET_CUDA__
