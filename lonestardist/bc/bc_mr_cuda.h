@@ -2,6 +2,8 @@
 #include "galois/cuda/HostDecls.h"
 
 void InitializeGraph_allNodes_cuda(struct CUDA_Context* ctx, unsigned int vectorSize);
+void InitializeIteration_allNodes_cuda(struct CUDA_Context* ctx, const std::vector<uint64_t>& nodesToConsider,
+		unsigned numSourcesPerRound);
 
 // Macros for sync structures
 void get_bitset_minDistances_cuda(struct CUDA_Context* ctx, uint64_t* bitset_compute);

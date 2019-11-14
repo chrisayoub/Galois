@@ -40,7 +40,7 @@ struct CUDA_Context : public CUDA_Context_Common {
 
 struct CUDA_Context* get_CUDA_context(int id) {
 	struct CUDA_Context* ctx;
-	ctx = (struct CUDA_Context* ) calloc(1, sizeof(struct CUDA_Context));
+	ctx = (struct CUDA_Context*) calloc(1, sizeof(struct CUDA_Context));
 	ctx->id = id;
 	return ctx;
 }
