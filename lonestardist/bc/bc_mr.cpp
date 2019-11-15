@@ -191,6 +191,13 @@ void FindMessageToSync(Graph& graph, const uint32_t roundNumber,
                        galois::DGAccumulator<uint32_t>& dga) {
   const auto& allNodes = graph.allNodesRange();
 
+#ifdef __GALOIS_HET_CUDA__
+	if (personality == GPU_CUDA) {
+        unsigned int __retval = 0;
+		FindMessageToSync_allNodes_cuda(cuda_ctx, roundNumber, __retval);
+		dga += __retval;
+	} else if (personality == CPU)
+#endif
   galois::do_all(
       galois::iterate(allNodes.begin(), allNodes.end()),
       [&](GNode curNode) {
