@@ -17,20 +17,19 @@ void kernel_sizing(CSRGraph &, dim3 &, dim3 &);
 // type of short path
 using ShortPathType = double;
 
-/**
- * Structure for holding data calculated during BC
- */
-struct BCData {
-  uint32_t minDistance;
-  ShortPathType shortPathCount;
-  // Treat this as atomic! Use atomic_helpers.h
-  float dependencyValue;
-};
-
 struct CUDA_Context : public CUDA_Context_Common {
-	// Array of BCData, will be dynamically allocated on GPU
-	struct CUDA_Context_Field<BCData*> sourceData;
-	// Distance map. TODO replace so uses CUDA-compatible hashmap
+	// Field from NodeData: sourceData, array of BCData
+
+	// Array of minDistance
+	struct CUDA_Context_Field<uint32_t*> minDistance;
+	// Array of shortPathCount
+	struct CUDA_Context_Field<ShortPathType*> shortPathCount;
+	// Array of dependencyValue, treat this as atomics! Use atomic_helpers.h
+	struct CUDA_Context_Field<float*> dependencyValue;
+
+	// Remaining fields from NodeData
+
+	// Distance map.
 	struct CUDA_Context_Field<CUDATree> dTree;
 	// Final bc value
 	struct CUDA_Context_Field<float> bc;
@@ -51,22 +50,30 @@ bool init_CUDA_context(struct CUDA_Context* ctx, int device) {
 
 void load_graph_CUDA(struct CUDA_Context* ctx, MarshalGraph &g, unsigned num_hosts) {
 	load_graph_CUDA_common(ctx, g, num_hosts);
-	load_graph_CUDA_field(ctx, &ctx->sourceData, num_hosts);
+
+	load_graph_CUDA_field(ctx, &ctx->minDistance, num_hosts);
+	load_graph_CUDA_field(ctx, &ctx->shortPathCount, num_hosts);
+	load_graph_CUDA_field(ctx, &ctx->dependencyValue, num_hosts);
+
 	load_graph_CUDA_field(ctx, &ctx->dTree, num_hosts);
 	load_graph_CUDA_field(ctx, &ctx->bc, num_hosts);
 	load_graph_CUDA_field(ctx, &ctx->roundIndexToSend, num_hosts);
+
 	reset_CUDA_context(ctx);
 }
 
 void reset_CUDA_context(struct CUDA_Context* ctx) {
-	ctx->sourceData.data.zero_gpu();
+	ctx->minDistance.data.zero_gpu();
+	ctx->shortPathCount.data.zero_gpu();
+	ctx->dependencyValue.data.zero_gpu();
+
 	ctx->dTree.data.zero_gpu();
 	ctx->bc.data.zero_gpu();
 	ctx->roundIndexToSend.data.zero_gpu();
 }
 
 // Macro functions
-// TODO need to implement
+// TODO need to implement ONLY if doing distributed GPUs, otheriwse not needed
 
 void get_bitset_minDistances_cuda(struct CUDA_Context* ctx, uint64_t* bitset_compute) {
 	// TODO get the bitset, see mrbc_sync.hh

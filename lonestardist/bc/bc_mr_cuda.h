@@ -7,6 +7,7 @@ void InitializeIteration_allNodes_cuda(struct CUDA_Context* ctx, const std::vect
 void FindMessageToSync_allNodes_cuda(struct CUDA_Context* ctx, const uint32_t roundNumber, uint32_t & dga);
 
 // Macros for sync structures
+// TODO implement if wanting to do distributed GPUs
 void get_bitset_minDistances_cuda(struct CUDA_Context* ctx, uint64_t* bitset_compute);
 void bitset_minDistances_reset_cuda(struct CUDA_Context* ctx, size_t begin, size_t end);
 

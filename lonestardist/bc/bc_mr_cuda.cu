@@ -6,7 +6,9 @@ void InitializeIteration(
 		unsigned int __begin, unsigned int __end,
 		uint32_t* p_roundIndexToSend,
 		CUDATree* p_dTree,
-		BCData** p_sourceData,
+		uint32_t** p_minDistance,
+		ShortPathType** p_shortPathCount,
+		float** p_dependencyValue,
 		uint64_t* nodesToConsider, unsigned numSourcesPerRound)
 {
   unsigned tid = TID_1D;
@@ -18,25 +20,29 @@ void InitializeIteration(
 	  CUDATree dTree = p_dTree[src];
 	  dTree.initialize();
 
-	  BCData* bcArray = p_sourceData[src];
+	  uint32_t* minDistances = p_minDistance[src];
+	  ShortPathType* shortPathCounts = p_shortPathCount[src];
+	  float* dependencyValues = p_dependencyValue[src];
 	  // Loop through sources
 	  for (unsigned i = 0; i < numSourcesPerRound; i++) {
 		  if (nodesToConsider[i] == graph.node_data[src]) {
 			  // This is a source node
-			  bcArray[i].minDistance = 0;
-			  bcArray[i].shortPathCount = 1;
-			  bcArray[i].dependencyValue = 0.0;
+			  minDistances[i] = 0;
+			  shortPathCounts[i] = 1;
+			  dependencyValues[i] = 0.0;
 			  dTree.setDistance(i, 0);
 		  } else {
 			  // This is a non-source node
-			  bcArray[i].minDistance = infinity;
-			  bcArray[i].shortPathCount = 0;
-			  bcArray[i].dependencyValue = 0.0;
+			  minDistances[i] = infinity;
+			  shortPathCounts[i] = 0;
+			  dependencyValues[i] = 0.0;
 		  }
 	  }
   }
 }
 
+// TOOD update for new GPU data layout
+/*
 __global__
 void FindMessageToSync(CSRGraph graph,
 		unsigned int __begin, unsigned int __end,
@@ -74,19 +80,23 @@ void FindMessageToSync(CSRGraph graph,
 
 	dga.thread_exit<cub::BlockReduce<uint32_t, TB_SIZE>>(dga_ts);
 }
+*/
 
 void InitializeGraph_allNodes_cuda(struct CUDA_Context* ctx, unsigned int vectorSize)
 {
-  // Init sourceData array to new array of size vectorSize
-  // Number of nodes * array size for each node
-  ctx->sourceData.data = Shared<BCData*>((size_t) (ctx->gg.nnodes * vectorSize));
+	// Init arrays to be to new arrays of size vectorSize
+	// Number of nodes * array size for each node
+	size_t arraySize = (size_t) (ctx->gg.nnodes * vectorSize);
+	ctx->minDistance.data = Shared<uint32_t*>(arraySize);
+	ctx->shortPathCount.data = Shared<ShortPathType*>(arraySize);
+	ctx->dependencyValue.data = Shared<float*>(arraySize);
 
-  // Set all memory to 0
-  reset_CUDA_context(ctx);
+	// Set all memory to 0
+	reset_CUDA_context(ctx);
 
-  // Finish op
-  cudaDeviceSynchronize();
-  check_cuda_kernel;
+	// Finish op
+	cudaDeviceSynchronize();
+	check_cuda_kernel;
 }
 
 void InitializeIteration_allNodes_cuda(struct CUDA_Context* ctx,
@@ -107,7 +117,9 @@ void InitializeIteration_allNodes_cuda(struct CUDA_Context* ctx,
 	InitializeIteration <<<blocks, threads>>>(ctx->gg, 0, ctx->gg.nnodes,
 			ctx->roundIndexToSend.data.gpu_wr_ptr(),
 			ctx->dTree.data.gpu_wr_ptr(),
-			ctx->sourceData.data.gpu_wr_ptr(),
+			ctx->minDistance.data.gpu_wr_ptr(),
+			ctx->shortPathCount.data.gpu_wr_ptr(),
+			ctx->dependencyValue.data.gpu_wr_ptr(),
 			nodesArr, numSourcesPerRound);
 
 	// Clean up
@@ -116,6 +128,7 @@ void InitializeIteration_allNodes_cuda(struct CUDA_Context* ctx,
 	check_cuda_kernel;
 }
 
+/*  TOOD re-enable and update
 void FindMessageToSync_allNodes_cuda(struct CUDA_Context* ctx, const uint32_t roundNumber, uint32_t & dga) {
 	// Sizing
 	dim3 blocks;
@@ -143,3 +156,4 @@ void FindMessageToSync_allNodes_cuda(struct CUDA_Context* ctx, const uint32_t ro
 	// Copy back return value
 	dga = *(dgaval.cpu_rd_ptr());
 }
+*/
