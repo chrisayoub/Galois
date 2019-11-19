@@ -490,3 +490,28 @@ void BC_masterNodes_cuda(struct CUDA_Context* ctx,
 	cudaDeviceSynchronize();
 	check_cuda_kernel;
 }
+
+void Sanity_masterNodes_cuda(struct CUDA_Context* ctx,
+		float & DGAccumulator_sum,
+		float & DGAccumulator_max,
+		float & DGAccumulator_min) {
+	// Sizing
+	dim3 blocks;
+	dim3 threads;
+	kernel_sizing(blocks, threads);
+
+	// Accumulator
+	// TODO implement
+//	HGAccumulator<uint32_t> _dga;
+//	Shared<uint32_t> dgaval  = Shared<uint32_t>(1);
+//	*(dgaval.cpu_wr_ptr()) = 0;
+//	_dga.rv = dgaval.gpu_wr_ptr();
+
+	// Kernel call
+
+	// TODO implement
+
+	// Clean up
+	cudaDeviceSynchronize();
+	check_cuda_kernel;
+}

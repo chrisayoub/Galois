@@ -543,6 +543,16 @@ void Sanity(Graph& graph) {
   DGA_min.reset();
   DGA_sum.reset();
 
+#ifdef __GALOIS_HET_CUDA__
+    if (personality == GPU_CUDA) {
+      float sum, max, min;
+      Sanity_masterNodes_cuda(cuda_ctx, sum, max, min);
+
+      DGA_sum += sum;
+      DGA_max.update(max);
+      DGA_min.update(min);
+    } else if (personality == CPU)
+#endif
   galois::do_all(galois::iterate(graph.masterNodesRange().begin(),
                                  graph.masterNodesRange().end()),
                  [&](auto src) {
