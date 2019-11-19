@@ -21,11 +21,11 @@ struct CUDA_Context : public CUDA_Context_Common {
 	// Field from NodeData: sourceData, array of BCData
 
 	// Array of minDistance
-	struct CUDA_Context_Field<uint32_t*> minDistance;
+	struct CUDA_Context_Field<uint32_t*> minDistances;
 	// Array of shortPathCount
-	struct CUDA_Context_Field<ShortPathType*> shortPathCount;
+	struct CUDA_Context_Field<ShortPathType*> shortPathCounts;
 	// Array of dependencyValue, treat this as atomics! Use atomic_helpers.h
-	struct CUDA_Context_Field<float*> dependencyValue;
+	struct CUDA_Context_Field<float*> dependencyValues;
 
 	// Remaining fields from NodeData
 
@@ -51,9 +51,9 @@ bool init_CUDA_context(struct CUDA_Context* ctx, int device) {
 void load_graph_CUDA(struct CUDA_Context* ctx, MarshalGraph &g, unsigned num_hosts) {
 	load_graph_CUDA_common(ctx, g, num_hosts);
 
-	load_graph_CUDA_field(ctx, &ctx->minDistance, num_hosts);
-	load_graph_CUDA_field(ctx, &ctx->shortPathCount, num_hosts);
-	load_graph_CUDA_field(ctx, &ctx->dependencyValue, num_hosts);
+	load_graph_CUDA_field(ctx, &ctx->minDistances, num_hosts);
+	load_graph_CUDA_field(ctx, &ctx->shortPathCounts, num_hosts);
+	load_graph_CUDA_field(ctx, &ctx->dependencyValues, num_hosts);
 
 	load_graph_CUDA_field(ctx, &ctx->dTree, num_hosts);
 	load_graph_CUDA_field(ctx, &ctx->bc, num_hosts);
@@ -63,9 +63,9 @@ void load_graph_CUDA(struct CUDA_Context* ctx, MarshalGraph &g, unsigned num_hos
 }
 
 void reset_CUDA_context(struct CUDA_Context* ctx) {
-	ctx->minDistance.data.zero_gpu();
-	ctx->shortPathCount.data.zero_gpu();
-	ctx->dependencyValue.data.zero_gpu();
+	ctx->minDistances.data.zero_gpu();
+	ctx->shortPathCounts.data.zero_gpu();
+	ctx->dependencyValues.data.zero_gpu();
 
 	ctx->dTree.data.zero_gpu();
 	ctx->bc.data.zero_gpu();

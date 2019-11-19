@@ -10,9 +10,9 @@ void InitializeIteration(
 		unsigned int __begin, unsigned int __end,
 		uint32_t* p_roundIndexToSend,
 		CUDATree* p_dTree,
-		uint32_t** p_minDistance,
-		ShortPathType** p_shortPathCount,
-		float** p_dependencyValue,
+		uint32_t** p_minDistances,
+		ShortPathType** p_shortPathCounts,
+		float** p_dependencyValues,
 		uint64_t* nodesToConsider, unsigned numSourcesPerRound)
 {
   unsigned tid = TID_1D;
@@ -24,9 +24,9 @@ void InitializeIteration(
 	  CUDATree dTree = p_dTree[src];
 	  dTree.initialize();
 
-	  uint32_t* minDistances = p_minDistance[src];
-	  ShortPathType* shortPathCounts = p_shortPathCount[src];
-	  float* dependencyValues = p_dependencyValue[src];
+	  uint32_t* minDistances = p_minDistances[src];
+	  ShortPathType* shortPathCounts = p_shortPathCounts[src];
+	  float* dependencyValues = p_dependencyValues[src];
 	  // Loop through sources
 	  for (unsigned i = 0; i < numSourcesPerRound; i++) {
 		  if (nodesToConsider[i] == graph.node_data[src]) {
@@ -52,7 +52,7 @@ void FindMessageToSync(CSRGraph graph,
 		const uint32_t roundNumber,
 		uint32_t* p_roundIndexToSend,
 		CUDATree* p_dTree,
-		uint32_t** p_minDistance,
+		uint32_t** p_minDistances,
 		DynamicBitset& bitset_minDistances) {
 
 	unsigned tid = TID_1D;
@@ -63,7 +63,7 @@ void FindMessageToSync(CSRGraph graph,
 
 	for (index_type src = __begin + tid; src < __end; src += nthreads)
 	{
-		uint32_t* minDistances = p_minDistance[src];
+		uint32_t* minDistances = p_minDistances[src];
 		uint32_t* roundIndexToSend = &p_roundIndexToSend[src];
 		CUDATree dTree = p_dTree[src];
 
@@ -114,9 +114,9 @@ void InitializeGraph_allNodes_cuda(struct CUDA_Context* ctx, unsigned int vector
 	// Init arrays to be to new arrays of size vectorSize
 	// Number of nodes * array size for each node
 	size_t arraySize = (size_t) (ctx->gg.nnodes * vectorSize);
-	ctx->minDistance.data = Shared<uint32_t*>(arraySize);
-	ctx->shortPathCount.data = Shared<ShortPathType*>(arraySize);
-	ctx->dependencyValue.data = Shared<float*>(arraySize);
+	ctx->minDistances.data = Shared<uint32_t*>(arraySize);
+	ctx->shortPathCounts.data = Shared<ShortPathType*>(arraySize);
+	ctx->dependencyValues.data = Shared<float*>(arraySize);
 
 	// Set all memory to 0
 	reset_CUDA_context(ctx);
@@ -144,9 +144,9 @@ void InitializeIteration_allNodes_cuda(struct CUDA_Context* ctx,
 	InitializeIteration <<<blocks, threads>>>(ctx->gg, 0, ctx->gg.nnodes,
 			ctx->roundIndexToSend.data.gpu_wr_ptr(),
 			ctx->dTree.data.gpu_wr_ptr(),
-			ctx->minDistance.data.gpu_wr_ptr(),
-			ctx->shortPathCount.data.gpu_wr_ptr(),
-			ctx->dependencyValue.data.gpu_wr_ptr(),
+			ctx->minDistances.data.gpu_wr_ptr(),
+			ctx->shortPathCounts.data.gpu_wr_ptr(),
+			ctx->dependencyValues.data.gpu_wr_ptr(),
 			nodesArr, numSourcesPerRound);
 
 	// Clean up
@@ -173,8 +173,8 @@ void FindMessageToSync_allNodes_cuda(struct CUDA_Context* ctx, const uint32_t ro
 			_dga, roundNumber,
 			ctx->roundIndexToSend.data.gpu_wr_ptr(),
 			ctx->dTree.data.gpu_wr_ptr(),
-			ctx->minDistance.data.gpu_wr_ptr(),
-			*(ctx->minDistance.is_updated.gpu_rd_ptr())
+			ctx->minDistances.data.gpu_wr_ptr(),
+			*(ctx->minDistances.is_updated.gpu_rd_ptr())
 	);
 
 	// Clean up
