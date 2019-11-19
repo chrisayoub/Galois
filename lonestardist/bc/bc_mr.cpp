@@ -364,6 +364,11 @@ void RoundUpdate(Graph& graph) {
   const auto& allNodes = graph.allNodesRange();
   syncSubstrate->set_num_round(0);
 
+#ifdef __GALOIS_HET_CUDA__
+	if (personality == GPU_CUDA) {
+		RoundUpdate_allNodes_cuda(cuda_ctx);
+	} else if (personality == CPU)
+#endif
   galois::do_all(
       galois::iterate(allNodes.begin(), allNodes.end()),
       [&](GNode node) {

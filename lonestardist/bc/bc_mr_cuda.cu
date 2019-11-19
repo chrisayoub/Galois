@@ -154,6 +154,21 @@ void SendAPSPMessages(
 	dga.thread_exit<cub::BlockReduce<uint32_t, TB_SIZE>>(dga_ts);
 }
 
+__global__
+void RoundUpdate(
+		CSRGraph graph,
+		unsigned int __begin, unsigned int __end,
+		CUDATree* p_dTree)
+{
+	  unsigned tid = TID_1D;
+	  unsigned nthreads = TOTAL_THREADS_1D;
+
+	  for (index_type src = __begin + tid; src < __end; src += nthreads)
+	  {
+		  p_dTree[src].prepForBackPhase();
+	  }
+}
+
 // *******************************
 // ** Kernel wrappers (host code)
 // ********************************
@@ -281,5 +296,22 @@ void SendAPSPMessages_nodesWithEdges_cuda(struct CUDA_Context* ctx, uint32_t & d
 
 	// Copy back return value
 	dga = *(dgaval.cpu_rd_ptr());
+}
+
+void RoundUpdate_allNodes_cuda(struct CUDA_Context* ctx) {
+	// Sizing
+	dim3 blocks;
+	dim3 threads;
+	kernel_sizing(blocks, threads);
+
+	// Kernel call
+	RoundUpdate <<<blocks, threads>>>(
+			ctx->gg, 0, ctx->gg.nnodes,
+			ctx->dTree.data.gpu_wr_ptr()
+	);
+
+	// Clean up
+	cudaDeviceSynchronize();
+	check_cuda_kernel;
 }
 
