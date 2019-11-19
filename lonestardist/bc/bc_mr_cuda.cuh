@@ -72,25 +72,32 @@ void reset_CUDA_context(struct CUDA_Context* ctx) {
 	ctx->roundIndexToSend.data.zero_gpu();
 }
 
-// Macro functions
-// TODO need to implement ONLY if doing distributed GPUs, otheriwse not needed
+// Macro functions for sync structures
+
+// minDistances
 
 void get_bitset_minDistances_cuda(struct CUDA_Context* ctx, uint64_t* bitset_compute) {
-	// TODO get the bitset, see mrbc_sync.hh
-//	ctx->current_length.is_updated.cpu_rd_ptr()->copy_to_cpu(bitset_compute);
+	ctx->minDistances.is_updated.cpu_rd_ptr()->copy_to_cpu(bitset_compute);
 }
 
 void bitset_minDistances_reset_cuda(struct CUDA_Context* ctx, size_t begin, size_t end) {
-	// TODO reset the bitset, see mrbc_sync.hh
-//	ctx->dependency.is_updated.cpu_rd_ptr()->reset();
+	reset_bitset_field(&ctx->minDistances, begin, end);
 }
 
+void bitset_minDistances_reset_cuda(struct CUDA_Context* ctx) {
+	ctx->minDistances.is_updated.cpu_rd_ptr()->reset();
+}
+
+// dependency
+
 void get_bitset_dependency_cuda(struct CUDA_Context* ctx, uint64_t* bitset_compute) {
-	// TODO get the bitset, see mrbc_sync.hh
-//	ctx->current_length.is_updated.cpu_rd_ptr()->copy_to_cpu(bitset_compute);
+	ctx->dependencyValues.is_updated.cpu_rd_ptr()->copy_to_cpu(bitset_compute);
 }
 
 void bitset_dependency_reset_cuda(struct CUDA_Context* ctx, size_t begin, size_t end) {
-	// TODO reset the bitset, see mrbc_sync.hh
-//	ctx->dependency.is_updated.cpu_rd_ptr()->reset();
+	reset_bitset_field(&ctx->dependencyValues, begin, end);
+}
+
+void bitset_dependency_reset_cuda(struct CUDA_Context* ctx) {
+	ctx->dependencyValues.is_updated.cpu_rd_ptr()->reset();
 }

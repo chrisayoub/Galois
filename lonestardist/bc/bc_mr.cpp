@@ -193,9 +193,9 @@ void FindMessageToSync(Graph& graph, const uint32_t roundNumber,
 
 #ifdef __GALOIS_HET_CUDA__
 	if (personality == GPU_CUDA) {
-        unsigned int __retval = 0;
-		FindMessageToSync_allNodes_cuda(cuda_ctx, roundNumber, __retval);
-		dga += __retval;
+        unsigned int retVal = 0;
+		FindMessageToSync_allNodes_cuda(cuda_ctx, roundNumber, retVal);
+		dga += retVal;
 	} else if (personality == CPU)
 #endif
   galois::do_all(
@@ -296,6 +296,13 @@ void SendAPSPMessagesOp(GNode dst, Graph& graph, galois::DGAccumulator<uint32_t>
 void SendAPSPMessages(Graph& graph, galois::DGAccumulator<uint32_t>& dga) {
   const auto& allNodesWithEdges = graph.allNodesWithEdgesRange();
 
+#ifdef __GALOIS_HET_CUDA__
+	if (personality == GPU_CUDA) {
+        unsigned retVal = 0;
+        SendAPSPMessages_nodesWithEdges_cuda(cuda_ctx, retVal);
+		dga += retVal;
+	} else if (personality == CPU)
+#endif
   galois::do_all(
       galois::iterate(allNodesWithEdges),
       [&](GNode dst) {
@@ -561,8 +568,12 @@ int main(int argc, char** argv) {
 
   galois::gPrint("[", net.ID, "] InitializeGraph\n");
   Graph* hg;
+#ifdef __GALOIS_HET_CUDA__
+  std::tie(hg, syncSubstrate) = distGraphInitialization<NodeData, void, false>(&cuda_ctx);
+#else
   // false = iterate over in edges
   std::tie(hg, syncSubstrate) = distGraphInitialization<NodeData, void, false>();
+#endif
 
   if (totalNumSources == 0) {
     galois::gDebug("Total num sources unspecified");
@@ -725,8 +736,16 @@ int main(int argc, char** argv) {
       macroRound = 0;
       numSourcesPerRound = origNumRoundSources;
 
-      bitset_dependency.reset();
-      bitset_minDistances.reset();
+#ifdef __GALOIS_HET_CUDA__
+      if (personality == GPU_CUDA) {
+    	  bitset_minDistances_reset_cuda(cuda_ctx);
+    	  bitset_dependency_reset_cuda(cuda_ctx);
+      } else if (personality == CPU)
+#endif
+      {
+          bitset_dependency.reset();
+          bitset_minDistances.reset();
+      }
 
       InitializeGraph(*hg);
       galois::runtime::getHostBarrier().wait();

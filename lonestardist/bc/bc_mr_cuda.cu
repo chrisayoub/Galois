@@ -104,10 +104,59 @@ void ConfirmMessageToSend(
 	  }
 }
 
+__global__
+void SendAPSPMessages(
+		CSRGraph graph,
+		unsigned int __begin, unsigned int __end,
+		HGAccumulator<uint32_t> dga,
+		uint32_t* p_roundIndexToSend,
+		CUDATree* p_dTree,
+		uint32_t** p_minDistances,
+		ShortPathType** p_shortPathCounts)
+{
+	unsigned tid = TID_1D;
+	unsigned nthreads = TOTAL_THREADS_1D;
+
+	__shared__ cub::BlockReduce<uint32_t, TB_SIZE>::TempStorage dga_ts;
+	dga.thread_entry();
+
+	for (index_type dest = __begin + tid; dest < __end; dest += nthreads)
+	{
+		// Loop through current node's edges
+		index_type edge_start = graph.getFirstEdge(dest);
+		index_type edge_end = graph.getFirstEdge(dest + 1);
+		for (index_type edge = edge_start; edge < edge_end; edge++)
+		{
+			index_type src = graph.getDestination(dest, edge);
+			uint32_t indexToSend = p_roundIndexToSend[src];
+
+			if (indexToSend != infinity) {
+				uint32_t distValue = p_minDistances[src][indexToSend];
+				uint32_t newValue = distValue + 1;
+			    // Update minDistance vector
+				uint32_t oldValue = p_minDistances[dest][indexToSend];
+
+				if (oldValue > newValue) {
+					p_minDistances[dest][indexToSend] = newValue;
+					p_dTree[dest].setDistance(indexToSend, oldValue, newValue);
+					// overwrite short path with this node's shortest path
+					p_shortPathCounts[dest][indexToSend] = p_shortPathCounts[src][indexToSend];
+				} else if (oldValue == newValue) {
+					// add to short path
+					p_shortPathCounts[dest][indexToSend] += p_shortPathCounts[src][indexToSend];
+				}
+
+				dga.reduce(1);
+			}
+		}
+	}
+
+	dga.thread_exit<cub::BlockReduce<uint32_t, TB_SIZE>>(dga_ts);
+}
+
 // *******************************
 // ** Kernel wrappers (host code)
 // ********************************
-
 
 void InitializeGraph_allNodes_cuda(struct CUDA_Context* ctx, unsigned int vectorSize)
 {
@@ -202,5 +251,35 @@ void ConfirmMessageToSend_allNodes_cuda(struct CUDA_Context* ctx, const uint32_t
 	// Clean up
 	cudaDeviceSynchronize();
 	check_cuda_kernel;
+}
+
+void SendAPSPMessages_nodesWithEdges_cuda(struct CUDA_Context* ctx, uint32_t & dga) {
+	// Sizing
+	dim3 blocks;
+	dim3 threads;
+	kernel_sizing(blocks, threads);
+
+	// Accumulator
+	HGAccumulator<uint32_t> _dga;
+	Shared<uint32_t> dgaval  = Shared<uint32_t>(1);
+	*(dgaval.cpu_wr_ptr()) = 0;
+	_dga.rv = dgaval.gpu_wr_ptr();
+
+	// Kernel call
+	SendAPSPMessages <<<blocks, threads>>>(
+			ctx->gg, 0, ctx->numNodesWithEdges,
+			_dga,
+			ctx->roundIndexToSend.data.gpu_wr_ptr(),
+			ctx->dTree.data.gpu_wr_ptr(),
+			ctx->minDistances.data.gpu_wr_ptr(),
+			ctx->shortPathCounts.data.gpu_wr_ptr()
+	);
+
+	// Clean up
+	cudaDeviceSynchronize();
+	check_cuda_kernel;
+
+	// Copy back return value
+	dga = *(dgaval.cpu_rd_ptr());
 }
 
