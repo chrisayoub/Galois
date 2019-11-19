@@ -763,6 +763,7 @@ int main(int argc, char** argv) {
     // buffer for text to be written out to file
     char* v_out = (char*)malloc(40);
 
+    // TODO update for GPU
     for (auto ii = (*hg).masterNodesRange().begin();
          ii != (*hg).masterNodesRange().end(); ++ii) {
       if (!outputDistPaths) {
