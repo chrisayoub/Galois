@@ -231,6 +231,11 @@ void ConfirmMessageToSend(Graph& graph, const uint32_t roundNumber,
                           galois::DGAccumulator<uint32_t>& dga) {
   const auto& allNodes = graph.allNodesRange();
 
+#ifdef __GALOIS_HET_CUDA__
+	if (personality == GPU_CUDA) {
+		ConfirmMessageToSend_allNodes_cuda(cuda_ctx, roundNumber);
+	} else if (personality == CPU)
+#endif
   galois::do_all(
       galois::iterate(allNodes.begin(), allNodes.end()),
       [&](GNode curNode) {

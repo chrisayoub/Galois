@@ -1,5 +1,9 @@
 #include "bc_mr_cuda.cuh"
 
+// *************************
+// ** Kernels (device code)
+// *************************
+
 __global__
 void InitializeIteration(
 		CSRGraph graph,
@@ -79,6 +83,31 @@ void FindMessageToSync(CSRGraph graph,
 	dga.thread_exit<cub::BlockReduce<uint32_t, TB_SIZE>>(dga_ts);
 }
 
+__global__
+void ConfirmMessageToSend(
+		CSRGraph graph,
+		unsigned int __begin, unsigned int __end,
+		uint32_t* p_roundIndexToSend,
+		CUDATree* p_dTree,
+		const uint32_t roundNumber)
+{
+	  unsigned tid = TID_1D;
+	  unsigned nthreads = TOTAL_THREADS_1D;
+
+	  for (index_type src = __begin + tid; src < __end; src += nthreads)
+	  {
+		  p_roundIndexToSend[src] = infinity;
+		  CUDATree dTree = p_dTree[src];
+		  if (p_roundIndexToSend[src] != infinity) {
+			  dTree.markSent(roundNumber);
+		  }
+	  }
+}
+
+// *******************************
+// ** Kernel wrappers (host code)
+// ********************************
+
 
 void InitializeGraph_allNodes_cuda(struct CUDA_Context* ctx, unsigned int vectorSize)
 {
@@ -154,5 +183,24 @@ void FindMessageToSync_allNodes_cuda(struct CUDA_Context* ctx, const uint32_t ro
 
 	// Copy back return value
 	dga = *(dgaval.cpu_rd_ptr());
+}
+
+void ConfirmMessageToSend_allNodes_cuda(struct CUDA_Context* ctx, const uint32_t roundNumber) {
+	// Sizing
+	dim3 blocks;
+	dim3 threads;
+	kernel_sizing(blocks, threads);
+
+	// Kernel call
+	ConfirmMessageToSend <<<blocks, threads>>>(
+			ctx->gg, 0, ctx->gg.nnodes,
+			ctx->roundIndexToSend.data.gpu_wr_ptr(),
+			ctx->dTree.data.gpu_wr_ptr(),
+			roundNumber
+	);
+
+	// Clean up
+	cudaDeviceSynchronize();
+	check_cuda_kernel;
 }
 

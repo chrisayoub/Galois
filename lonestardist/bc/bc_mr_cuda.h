@@ -5,6 +5,7 @@ void InitializeGraph_allNodes_cuda(struct CUDA_Context* ctx, unsigned int vector
 void InitializeIteration_allNodes_cuda(struct CUDA_Context* ctx, const std::vector<uint64_t>& nodesToConsider,
 		unsigned numSourcesPerRound);
 void FindMessageToSync_allNodes_cuda(struct CUDA_Context* ctx, const uint32_t roundNumber, uint32_t & dga);
+void ConfirmMessageToSend_allNodes_cuda(struct CUDA_Context* ctx, const uint32_t roundNumber);
 
 // Macros for sync structures
 // TODO implement if wanting to do distributed GPUs
