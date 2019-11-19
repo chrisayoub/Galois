@@ -41,8 +41,6 @@ void InitializeIteration(
   }
 }
 
-// TOOD update for new GPU data layout
-/*
 __global__
 void FindMessageToSync(CSRGraph graph,
 		unsigned int __begin, unsigned int __end,
@@ -50,7 +48,8 @@ void FindMessageToSync(CSRGraph graph,
 		const uint32_t roundNumber,
 		uint32_t* p_roundIndexToSend,
 		CUDATree* p_dTree,
-		BCData** p_sourceData) {
+		uint32_t** p_minDistance,
+		DynamicBitset& bitset_minDistances) {
 
 	unsigned tid = TID_1D;
 	unsigned nthreads = TOTAL_THREADS_1D;
@@ -60,7 +59,7 @@ void FindMessageToSync(CSRGraph graph,
 
 	for (index_type src = __begin + tid; src < __end; src += nthreads)
 	{
-		BCData* sourceData = p_sourceData[src];
+		uint32_t* minDistances = p_minDistance[src];
 		uint32_t* roundIndexToSend = &p_roundIndexToSend[src];
 		CUDATree dTree = p_dTree[src];
 
@@ -68,9 +67,8 @@ void FindMessageToSync(CSRGraph graph,
 		*roundIndexToSend = newRoundIndex;
 
 		if (newRoundIndex != infinity) {
-			if (sourceData[newRoundIndex].minDistance != 0) {
-				// TODO pass this as param so can set
-//				bitset_minDistances.set(curNode);
+			if (minDistances[newRoundIndex] != 0) {
+				bitset_minDistances.set(src);
 			}
 			dga.reduce(1);
 		} else if (dTree.moreWork()) {
@@ -80,7 +78,7 @@ void FindMessageToSync(CSRGraph graph,
 
 	dga.thread_exit<cub::BlockReduce<uint32_t, TB_SIZE>>(dga_ts);
 }
-*/
+
 
 void InitializeGraph_allNodes_cuda(struct CUDA_Context* ctx, unsigned int vectorSize)
 {
@@ -128,7 +126,6 @@ void InitializeIteration_allNodes_cuda(struct CUDA_Context* ctx,
 	check_cuda_kernel;
 }
 
-/*  TOOD re-enable and update
 void FindMessageToSync_allNodes_cuda(struct CUDA_Context* ctx, const uint32_t roundNumber, uint32_t & dga) {
 	// Sizing
 	dim3 blocks;
@@ -147,7 +144,9 @@ void FindMessageToSync_allNodes_cuda(struct CUDA_Context* ctx, const uint32_t ro
 			_dga, roundNumber,
 			ctx->roundIndexToSend.data.gpu_wr_ptr(),
 			ctx->dTree.data.gpu_wr_ptr(),
-			ctx->sourceData.data.gpu_wr_ptr());
+			ctx->minDistance.data.gpu_wr_ptr(),
+			*(ctx->minDistance.is_updated.gpu_rd_ptr())
+	);
 
 	// Clean up
 	cudaDeviceSynchronize();
@@ -156,4 +155,4 @@ void FindMessageToSync_allNodes_cuda(struct CUDA_Context* ctx, const uint32_t ro
 	// Copy back return value
 	dga = *(dgaval.cpu_rd_ptr());
 }
-*/
+
