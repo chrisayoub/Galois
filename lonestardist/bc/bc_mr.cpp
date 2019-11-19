@@ -509,6 +509,11 @@ void BC(Graph& graph, const std::vector<uint64_t>& nodesToConsider) {
   const auto& masterNodes = graph.masterNodesRange();
   syncSubstrate->set_num_round(0);
 
+#ifdef __GALOIS_HET_CUDA__
+	if (personality == GPU_CUDA) {
+		BC_masterNodes_cuda(cuda_ctx, nodesToConsider, numSourcesPerRound);
+	} else if (personality == CPU)
+#endif
   galois::do_all(
       galois::iterate(masterNodes.begin(), masterNodes.end()),
       [&](GNode node) {

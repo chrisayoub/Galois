@@ -248,6 +248,37 @@ void BackProp(
 	}
 }
 
+__global__
+void BC(
+		CSRGraph graph,
+		unsigned int __begin, unsigned int __end,
+		float* p_bc,
+		float** p_dependencyValues,
+		uint64_t* nodesToConsider, unsigned numSourcesPerRound) {
+	unsigned tid = TID_1D;
+	unsigned nthreads = TOTAL_THREADS_1D;
+
+	for (index_type src = __begin + tid; src < __end; src += nthreads) {
+		for (unsigned i = 0; i < numSourcesPerRound; i++) {
+			// exclude sources themselves from BC calculation
+			if (graph.node_data[src] != nodesToConsider[i]) {
+				p_bc[src] += p_dependencyValues[src][i];
+			}
+		}
+	}
+}
+
+// *******************************
+// ** Helper functions (host code)
+// ********************************
+
+uint64_t* copyVectorToDevice(const std::vector<uint64_t>& vec) {
+	uint64_t* arr;
+	size_t arrSize = vec.size() * sizeof(uint64_t);
+	cudaMalloc(&arr, arrSize);
+	cudaMemcpy(arr, vec.data(), arrSize, cudaMemcpyHostToDevice);
+	return arr;
+}
 
 // *******************************
 // ** Kernel wrappers (host code)
@@ -274,10 +305,7 @@ void InitializeIteration_allNodes_cuda(struct CUDA_Context* ctx,
 		const std::vector<uint64_t>& nodesToConsider,
 		unsigned numSourcesPerRound) {
 	// Copy source array to GPU
-	uint64_t* nodesArr;
-	size_t arrSize = nodesToConsider.size() * sizeof(uint64_t);
-	cudaMalloc(&nodesArr, arrSize);
-	cudaMemcpy(nodesArr, nodesToConsider.data(), arrSize, cudaMemcpyHostToDevice);
+	uint64_t* nodesArr = copyVectorToDevice(nodesToConsider);
 
 	// Sizing
 	dim3 blocks;
@@ -435,6 +463,30 @@ void BackProp_nodesWithEdges_cuda(struct CUDA_Context* ctx) {
 	);
 
 	// Clean up
+	cudaDeviceSynchronize();
+	check_cuda_kernel;
+}
+
+void BC_masterNodes_cuda(struct CUDA_Context* ctx,
+		const std::vector<uint64_t>& nodesToConsider,
+		unsigned numSourcesPerRound) {
+	// Copy source array to GPU
+	uint64_t* nodesArr = copyVectorToDevice(nodesToConsider);
+
+	// Sizing
+	dim3 blocks;
+	dim3 threads;
+	kernel_sizing(blocks, threads);
+
+	// Kernel call
+	BC <<<blocks, threads>>>(
+			ctx->gg, ctx->beginMaster, ctx->beginMaster + ctx->numOwned,
+			ctx->bc.data.gpu_wr_ptr(),
+			ctx->dependencyValues.data.gpu_wr_ptr(),
+			nodesArr, numSourcesPerRound);
+
+	// Clean up
+	cudaFree(nodesArr);
 	cudaDeviceSynchronize();
 	check_cuda_kernel;
 }
