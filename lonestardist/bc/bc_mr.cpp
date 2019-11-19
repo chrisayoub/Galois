@@ -479,6 +479,11 @@ void BackProp(Graph& graph, const uint32_t lastRoundNumber) {
                Bitset_dependency>(
         std::string("DependencySync"));
 
+#ifdef __GALOIS_HET_CUDA__
+	if (personality == GPU_CUDA) {
+		BackProp_nodesWithEdges_cuda(cuda_ctx);
+	} else if (personality == CPU)
+#endif
     galois::do_all(
         galois::iterate(allNodesWithEdges),
         [&](GNode dst) {

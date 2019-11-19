@@ -202,6 +202,53 @@ void BackFindMessageToSend(
 	}
 }
 
+__global__
+void BackProp(
+		CSRGraph graph,
+		unsigned int __begin, unsigned int __end,
+		uint32_t* p_roundIndexToSend,
+		uint32_t** p_minDistances,
+		ShortPathType** p_shortPathCounts,
+		float** p_dependencyValues) {
+	unsigned tid = TID_1D;
+	unsigned nthreads = TOTAL_THREADS_1D;
+
+	for (index_type dest = __begin + tid; dest < __end; dest += nthreads) {
+		unsigned i = p_roundIndexToSend[dest];
+
+		if (i != infinity) {
+			uint32_t myDistance = p_minDistances[dest][i];
+
+		    // calculate final dependency value
+			p_dependencyValues[dest][i] = p_dependencyValues[dest][i] * p_shortPathCounts[dest][i];
+
+			// get the value to add to predecessors
+			float toAdd = ((float)1 + p_dependencyValues[dest][i]) /
+					p_shortPathCounts[dest][i];
+
+			// Loop through current node's edges
+			index_type edge_start = graph.getFirstEdge(dest);
+			index_type edge_end = graph.getFirstEdge(dest + 1);
+			for (index_type edge = edge_start; edge < edge_end; edge++)
+			{
+				index_type src = graph.getDestination(dest, edge);
+				uint32_t sourceDistance = p_minDistances[src][i];
+
+				// source nodes of this batch (i.e. distance 0) can be safely
+				// ignored
+				if (sourceDistance != 0) {
+					// determine if this source is a predecessor
+					if (myDistance == (sourceDistance + 1)) {
+						// add to dependency of predecessor using our finalized one
+						atomicTestAdd(&p_dependencyValues[src][i], toAdd);
+					}
+				}
+			}
+		}
+	}
+}
+
+
 // *******************************
 // ** Kernel wrappers (host code)
 // ********************************
@@ -365,6 +412,26 @@ void BackFindMessageToSend_allNodes_cuda(struct CUDA_Context* ctx,
 			ctx->dTree.data.gpu_wr_ptr(),
 			ctx->dependencyValues.data.gpu_wr_ptr(),
 			*(ctx->dependencyValues.is_updated.gpu_rd_ptr())
+	);
+
+	// Clean up
+	cudaDeviceSynchronize();
+	check_cuda_kernel;
+}
+
+void BackProp_nodesWithEdges_cuda(struct CUDA_Context* ctx) {
+	// Sizing
+	dim3 blocks;
+	dim3 threads;
+	kernel_sizing(blocks, threads);
+
+	// Kernel call
+	BackProp <<<blocks, threads>>>(
+			ctx->gg, 0, ctx->numNodesWithEdges,
+			ctx->roundIndexToSend.data.gpu_wr_ptr(),
+			ctx->minDistances.data.gpu_wr_ptr(),
+			ctx->shortPathCounts.data.gpu_wr_ptr(),
+			ctx->dependencyValues.data.gpu_wr_ptr()
 	);
 
 	// Clean up

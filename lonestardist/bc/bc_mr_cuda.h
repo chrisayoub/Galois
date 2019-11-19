@@ -10,6 +10,7 @@ void SendAPSPMessages_nodesWithEdges_cuda(struct CUDA_Context* ctx, uint32_t & d
 void RoundUpdate_allNodes_cuda(struct CUDA_Context* ctx);
 void BackFindMessageToSend_allNodes_cuda(struct CUDA_Context* ctx, const uint32_t roundNumber,
         const uint32_t lastRoundNumber);
+void BackProp_nodesWithEdges_cuda(struct CUDA_Context* ctx);
 
 // Macros for sync structures
 void get_bitset_minDistances_cuda(struct CUDA_Context* ctx, uint64_t* bitset_compute);
