@@ -390,6 +390,11 @@ void BackFindMessageToSend(Graph& graph, const uint32_t roundNumber,
   // that needs to be sync'd
   const auto& allNodes = graph.allNodesRange();
 
+#ifdef __GALOIS_HET_CUDA__
+	if (personality == GPU_CUDA) {
+		BackFindMessageToSend_allNodes_cuda(cuda_ctx, roundNumber, lastRoundNumber);
+	} else if (personality == CPU)
+#endif
   galois::do_all(
       galois::iterate(allNodes.begin(), allNodes.end()),
       [&](GNode dst) {

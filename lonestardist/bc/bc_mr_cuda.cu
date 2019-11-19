@@ -169,6 +169,39 @@ void RoundUpdate(
 	  }
 }
 
+__global__
+void BackFindMessageToSend(
+		CSRGraph graph,
+		unsigned int __begin, unsigned int __end,
+		const uint32_t roundNumber,
+        const uint32_t lastRoundNumber,
+		uint32_t* p_roundIndexToSend,
+		CUDATree* p_dTree,
+		float** p_dependencyValues,
+		DynamicBitset& bitset_dependency)
+{
+	unsigned tid = TID_1D;
+	unsigned nthreads = TOTAL_THREADS_1D;
+
+	for (index_type src = __begin + tid; src < __end; src += nthreads) {
+		// if zero distances already reached, there is no point sending things
+		// out since we don't care about dependecy for sources (i.e. distance
+		// 0)
+		CUDATree dTree = p_dTree[src];
+		if (!dTree.isZeroReached()) {
+			uint32_t newRoundIndex = dTree.backGetIndexToSend(roundNumber, lastRoundNumber);
+			p_roundIndexToSend[src] = newRoundIndex;
+
+			if (newRoundIndex != infinity) {
+	            // only comm if not redundant 0
+				if (p_dependencyValues[src][newRoundIndex] != 0) {
+					bitset_dependency.set(src);
+				}
+			}
+		}
+	}
+}
+
 // *******************************
 // ** Kernel wrappers (host code)
 // ********************************
@@ -315,3 +348,26 @@ void RoundUpdate_allNodes_cuda(struct CUDA_Context* ctx) {
 	check_cuda_kernel;
 }
 
+void BackFindMessageToSend_allNodes_cuda(struct CUDA_Context* ctx,
+		const uint32_t roundNumber,
+        const uint32_t lastRoundNumber) {
+	// Sizing
+	dim3 blocks;
+	dim3 threads;
+	kernel_sizing(blocks, threads);
+
+	// Kernel call
+	BackFindMessageToSend <<<blocks, threads>>>(
+			ctx->gg, 0, ctx->gg.nnodes,
+			roundNumber,
+	        lastRoundNumber,
+			ctx->roundIndexToSend.data.gpu_wr_ptr(),
+			ctx->dTree.data.gpu_wr_ptr(),
+			ctx->dependencyValues.data.gpu_wr_ptr(),
+			*(ctx->dependencyValues.is_updated.gpu_rd_ptr())
+	);
+
+	// Clean up
+	cudaDeviceSynchronize();
+	check_cuda_kernel;
+}
