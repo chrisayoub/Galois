@@ -319,12 +319,10 @@ void InitializeGraph_allNodes_cuda(struct CUDA_Context* ctx, unsigned int vector
 {
 	// Init arrays to be to new arrays of size vectorSize
 	// Number of nodes * array size for each node
-	// TODO is this correct? Or will these Shared things get allocated on the stack and
-	// get wiped out??
 	size_t arraySize = (size_t) (ctx->gg.nnodes * vectorSize);
-	ctx->minDistances.data = Shared<uint32_t*>(arraySize);
-	ctx->shortPathCounts.data = Shared<ShortPathType*>(arraySize);
-	ctx->dependencyValues.data = Shared<float*>(arraySize);
+	ctx->minDistances.data.alloc(arraySize);
+	ctx->shortPathCounts.data.alloc(arraySize);
+	ctx->dependencyValues.data.alloc(arraySize);
 
 	// Set all memory to 0
 	reset_CUDA_context(ctx);
