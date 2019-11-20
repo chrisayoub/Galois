@@ -806,6 +806,9 @@ int main(int argc, char** argv) {
         bc = (*hg).getData(*ii).bc;
         sprintf(v_out, "%lu %.9f\n", (*hg).getGID(*ii), bc);
       } else {
+#ifdef __GALOIS_HET_CUDA__
+    	// Do nothing
+#else
         uint64_t a      = 0;
         ShortPathType b = 0;
         for (unsigned i = 0; i < numSourcesPerRound; i++) {
@@ -814,6 +817,7 @@ int main(int argc, char** argv) {
           }
           b += (*hg).getData(*ii).sourceData[i].shortPathCount;
         }
+#endif
       }
 
       galois::runtime::printOutput(v_out);
