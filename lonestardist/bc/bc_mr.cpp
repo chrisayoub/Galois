@@ -798,7 +798,14 @@ int main(int argc, char** argv) {
          ii != (*hg).masterNodesRange().end(); ++ii) {
       if (!outputDistPaths) {
         // outputs betweenness centrality
-        sprintf(v_out, "%lu %.9f\n", (*hg).getGID(*ii), (*hg).getData(*ii).bc);
+        float bc;
+#ifdef __GALOIS_HET_CUDA__
+    if (personality == GPU_CUDA) {
+        bc = get_node_betweeness_centrality_cuda(cuda_ctx, *ii);
+    } else if (personality == CPU)
+#endif
+        bc = (*hg).getData(*ii).bc;
+        sprintf(v_out, "%lu %.9f\n", (*hg).getGID(*ii), bc);
       } else {
         uint64_t a      = 0;
         ShortPathType b = 0;

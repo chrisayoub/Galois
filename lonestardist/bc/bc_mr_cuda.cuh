@@ -72,6 +72,11 @@ void reset_CUDA_context(struct CUDA_Context* ctx) {
 	ctx->roundIndexToSend.data.zero_gpu();
 }
 
+float get_node_betweeness_centrality_cuda(struct CUDA_Context* ctx, unsigned LID) {
+	float *betweeness_centrality = ctx->bc.data.cpu_rd_ptr();
+	return betweeness_centrality[LID];
+}
+
 // Macro functions for sync structures
 
 // minDistances
