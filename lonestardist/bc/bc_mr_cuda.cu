@@ -96,7 +96,6 @@ void ConfirmMessageToSend(
 
 	  for (index_type src = __begin + tid; src < __end; src += nthreads)
 	  {
-		  p_roundIndexToSend[src] = infinity;
 		  CUDATree dTree = p_dTree[src];
 		  if (p_roundIndexToSend[src] != infinity) {
 			  dTree.markSent(roundNumber);
