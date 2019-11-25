@@ -7,7 +7,7 @@
 __device__
 unsigned flatMapArraySize;
 
-// 2D arrays are being represented as flat-maps. This gives us the
+// 2D arrays are being represented as flat-maps. This gives us the index for sourceData array
 __device__
 unsigned getArrayIndex(unsigned node, unsigned index) {
 	return node * flatMapArraySize + index;
