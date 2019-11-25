@@ -21,11 +21,11 @@ struct CUDA_Context : public CUDA_Context_Common {
 	// Field from NodeData: sourceData, array of BCData
 
 	// Array of minDistance
-	struct CUDA_Context_Field<uint32_t*> minDistances;
+	struct CUDA_Context_Field<uint32_t> minDistances;
 	// Array of shortPathCount
-	struct CUDA_Context_Field<ShortPathType*> shortPathCounts;
+	struct CUDA_Context_Field<ShortPathType> shortPathCounts;
 	// Array of dependencyValue, treat this as atomics! Use atomic_helpers.h
-	struct CUDA_Context_Field<float*> dependencyValues;
+	struct CUDA_Context_Field<float> dependencyValues;
 
 	// Remaining fields from NodeData
 

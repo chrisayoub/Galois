@@ -1,5 +1,18 @@
 #include "bc_mr_cuda.cuh"
 
+// *******************************
+// ** Helper functions (device code)
+// ********************************
+
+__device__
+unsigned flatMapArraySize;
+
+// 2D arrays are being represented as flat-maps. This gives us the
+__device__
+unsigned getArrayIndex(unsigned node, unsigned index) {
+	return node * flatMapArraySize + index;
+}
+
 // *************************
 // ** Kernels (device code)
 // *************************
@@ -10,9 +23,9 @@ void InitializeIteration(
 		unsigned int __begin, unsigned int __end,
 		uint32_t* p_roundIndexToSend,
 		CUDATree* p_dTree,
-		uint32_t** p_minDistances,
-		ShortPathType** p_shortPathCounts,
-		float** p_dependencyValues,
+		uint32_t* p_minDistances,
+		ShortPathType* p_shortPathCounts,
+		float* p_dependencyValues,
 		uint64_t* nodesToConsider, unsigned numSourcesPerRound)
 {
   unsigned tid = TID_1D;
@@ -24,22 +37,20 @@ void InitializeIteration(
 	  CUDATree dTree = p_dTree[src];
 	  dTree.initialize();
 
-	  uint32_t* minDistances = p_minDistances[src];
-	  ShortPathType* shortPathCounts = p_shortPathCounts[src];
-	  float* dependencyValues = p_dependencyValues[src];
 	  // Loop through sources
 	  for (unsigned i = 0; i < numSourcesPerRound; i++) {
+		  unsigned idx = getArrayIndex(src, i);
 		  if (nodesToConsider[i] == graph.node_data[src]) {
 			  // This is a source node
-			  minDistances[i] = 0;
-			  shortPathCounts[i] = 1;
-			  dependencyValues[i] = 0.0;
+			  p_minDistances[idx] = 0;
+			  p_shortPathCounts[idx] = 1;
+			  p_dependencyValues[idx] = 0.0;
 			  dTree.setDistance(i, 0);
 		  } else {
 			  // This is a non-source node
-			  minDistances[i] = infinity;
-			  shortPathCounts[i] = 0;
-			  dependencyValues[i] = 0.0;
+			  p_minDistances[idx] = infinity;
+			  p_shortPathCounts[idx] = 0;
+			  p_dependencyValues[idx] = 0.0;
 		  }
 	  }
   }
@@ -52,7 +63,7 @@ void FindMessageToSync(CSRGraph graph,
 		const uint32_t roundNumber,
 		uint32_t* p_roundIndexToSend,
 		CUDATree* p_dTree,
-		uint32_t** p_minDistances,
+		uint32_t* p_minDistances,
 		DynamicBitset& bitset_minDistances) {
 
 	unsigned tid = TID_1D;
@@ -63,7 +74,6 @@ void FindMessageToSync(CSRGraph graph,
 
 	for (index_type src = __begin + tid; src < __end; src += nthreads)
 	{
-		uint32_t* minDistances = p_minDistances[src];
 		uint32_t* roundIndexToSend = &p_roundIndexToSend[src];
 		CUDATree dTree = p_dTree[src];
 
@@ -71,7 +81,8 @@ void FindMessageToSync(CSRGraph graph,
 		*roundIndexToSend = newRoundIndex;
 
 		if (newRoundIndex != infinity) {
-			if (minDistances[newRoundIndex] != 0) {
+			unsigned srcIndex = getArrayIndex(src, newRoundIndex);
+			if (p_minDistances[srcIndex] != 0) {
 				bitset_minDistances.set(src);
 			}
 			dga.reduce(1);
@@ -110,8 +121,8 @@ void SendAPSPMessages(
 		HGAccumulator<uint32_t> dga,
 		uint32_t* p_roundIndexToSend,
 		CUDATree* p_dTree,
-		uint32_t** p_minDistances,
-		ShortPathType** p_shortPathCounts)
+		uint32_t* p_minDistances,
+		ShortPathType* p_shortPathCounts)
 {
 	unsigned tid = TID_1D;
 	unsigned nthreads = TOTAL_THREADS_1D;
@@ -129,20 +140,23 @@ void SendAPSPMessages(
 			index_type src = graph.getDestination(dest, edge);
 			uint32_t indexToSend = p_roundIndexToSend[src];
 
+			unsigned destIndex = getArrayIndex(dest, indexToSend);
+			unsigned srcIndex = getArrayIndex(src, indexToSend);
+
 			if (indexToSend != infinity) {
-				uint32_t distValue = p_minDistances[src][indexToSend];
+				uint32_t distValue = p_minDistances[srcIndex];
 				uint32_t newValue = distValue + 1;
 			    // Update minDistance vector
-				uint32_t oldValue = p_minDistances[dest][indexToSend];
+				uint32_t oldValue = p_minDistances[destIndex];
 
 				if (oldValue > newValue) {
-					p_minDistances[dest][indexToSend] = newValue;
+					p_minDistances[destIndex] = newValue;
 					p_dTree[dest].setDistance(indexToSend, oldValue, newValue);
 					// overwrite short path with this node's shortest path
-					p_shortPathCounts[dest][indexToSend] = p_shortPathCounts[src][indexToSend];
+					p_shortPathCounts[destIndex] = p_shortPathCounts[srcIndex];
 				} else if (oldValue == newValue) {
 					// add to short path
-					p_shortPathCounts[dest][indexToSend] += p_shortPathCounts[src][indexToSend];
+					p_shortPathCounts[destIndex] += p_shortPathCounts[srcIndex];
 				}
 
 				dga.reduce(1);
@@ -176,7 +190,7 @@ void BackFindMessageToSend(
         const uint32_t lastRoundNumber,
 		uint32_t* p_roundIndexToSend,
 		CUDATree* p_dTree,
-		float** p_dependencyValues,
+		float* p_dependencyValues,
 		DynamicBitset& bitset_dependency)
 {
 	unsigned tid = TID_1D;
@@ -193,7 +207,8 @@ void BackFindMessageToSend(
 
 			if (newRoundIndex != infinity) {
 	            // only comm if not redundant 0
-				if (p_dependencyValues[src][newRoundIndex] != 0) {
+				unsigned srcIndex = getArrayIndex(src, newRoundIndex);
+				if (p_dependencyValues[srcIndex] != 0) {
 					bitset_dependency.set(src);
 				}
 			}
@@ -206,9 +221,9 @@ void BackProp(
 		CSRGraph graph,
 		unsigned int __begin, unsigned int __end,
 		uint32_t* p_roundIndexToSend,
-		uint32_t** p_minDistances,
-		ShortPathType** p_shortPathCounts,
-		float** p_dependencyValues) {
+		uint32_t* p_minDistances,
+		ShortPathType* p_shortPathCounts,
+		float* p_dependencyValues) {
 	unsigned tid = TID_1D;
 	unsigned nthreads = TOTAL_THREADS_1D;
 
@@ -216,14 +231,16 @@ void BackProp(
 		unsigned i = p_roundIndexToSend[dest];
 
 		if (i != infinity) {
-			uint32_t myDistance = p_minDistances[dest][i];
+			unsigned destIndex = getArrayIndex(dest, i);
+
+			uint32_t myDistance = p_minDistances[destIndex];
 
 		    // calculate final dependency value
-			p_dependencyValues[dest][i] = p_dependencyValues[dest][i] * p_shortPathCounts[dest][i];
+			p_dependencyValues[destIndex] = p_dependencyValues[destIndex] * p_shortPathCounts[destIndex];
 
 			// get the value to add to predecessors
-			float toAdd = ((float)1 + p_dependencyValues[dest][i]) /
-					p_shortPathCounts[dest][i];
+			float toAdd = ((float)1 + p_dependencyValues[destIndex]) /
+					p_shortPathCounts[destIndex];
 
 			// Loop through current node's edges
 			index_type edge_start = graph.getFirstEdge(dest);
@@ -231,7 +248,8 @@ void BackProp(
 			for (index_type edge = edge_start; edge < edge_end; edge++)
 			{
 				index_type src = graph.getDestination(dest, edge);
-				uint32_t sourceDistance = p_minDistances[src][i];
+				unsigned srcIndex = getArrayIndex(src, i);
+				uint32_t sourceDistance = p_minDistances[srcIndex];
 
 				// source nodes of this batch (i.e. distance 0) can be safely
 				// ignored
@@ -239,7 +257,7 @@ void BackProp(
 					// determine if this source is a predecessor
 					if (myDistance == (sourceDistance + 1)) {
 						// add to dependency of predecessor using our finalized one
-						atomicTestAdd(&p_dependencyValues[src][i], toAdd);
+						atomicTestAdd(&p_dependencyValues[srcIndex], toAdd);
 					}
 				}
 			}
@@ -252,7 +270,7 @@ void BC(
 		CSRGraph graph,
 		unsigned int __begin, unsigned int __end,
 		float* p_bc,
-		float** p_dependencyValues,
+		float* p_dependencyValues,
 		uint64_t* nodesToConsider, unsigned numSourcesPerRound) {
 	unsigned tid = TID_1D;
 	unsigned nthreads = TOTAL_THREADS_1D;
@@ -261,7 +279,8 @@ void BC(
 		for (unsigned i = 0; i < numSourcesPerRound; i++) {
 			// exclude sources themselves from BC calculation
 			if (graph.node_data[src] != nodesToConsider[i]) {
-				p_bc[src] += p_dependencyValues[src][i];
+				unsigned srcIndex = getArrayIndex(src, i);
+				p_bc[src] += p_dependencyValues[srcIndex];
 			}
 		}
 	}
@@ -310,11 +329,15 @@ uint64_t* copyVectorToDevice(const std::vector<uint64_t>& vec) {
 	return arr;
 }
 
+void copyVectorSizeToDevice(unsigned vectorSize) {
+	cudaMemset(&flatMapArraySize, vectorSize, sizeof(unsigned));
+}
+
 // *******************************
 // ** Kernel wrappers (host code)
 // ********************************
 
-void InitializeGraph_allNodes_cuda(struct CUDA_Context* ctx, unsigned int vectorSize)
+void InitializeGraph_allNodes_cuda(struct CUDA_Context* ctx, unsigned vectorSize)
 {
 	// Init arrays to be to new arrays of size vectorSize
 	// Number of nodes * array size for each node
@@ -322,6 +345,9 @@ void InitializeGraph_allNodes_cuda(struct CUDA_Context* ctx, unsigned int vector
 	ctx->minDistances.data.alloc(arraySize);
 	ctx->shortPathCounts.data.alloc(arraySize);
 	ctx->dependencyValues.data.alloc(arraySize);
+
+	// Make vectorSize accessible from device
+	copyVectorSizeToDevice(vectorSize);
 
 	// Set all memory to 0
 	reset_CUDA_context(ctx);
