@@ -142,7 +142,7 @@ void SendAPSPMessages(
 		index_type edge_end = graph.getFirstEdge(dest + 1);
 		for (index_type edge = edge_start; edge < edge_end; edge++)
 		{
-			index_type src = graph.getDestination(dest, edge);
+			index_type src = graph.getAbsDestination(edge);
 			uint32_t indexToSend = p_roundIndexToSend[src];
 
 			unsigned destIndex = getArrayIndex(dest, indexToSend);
@@ -252,7 +252,7 @@ void BackProp(
 			index_type edge_end = graph.getFirstEdge(dest + 1);
 			for (index_type edge = edge_start; edge < edge_end; edge++)
 			{
-				index_type src = graph.getDestination(dest, edge);
+				index_type src = graph.getAbsDestination(edge);
 				unsigned srcIndex = getArrayIndex(src, i);
 				uint32_t sourceDistance = p_minDistances[srcIndex];
 
