@@ -339,18 +339,18 @@ void copyVectorSizeToDevice(unsigned vectorSize) {
 
 void InitializeGraph_allNodes_cuda(struct CUDA_Context* ctx, unsigned vectorSize)
 {
-	// Init arrays to be to new arrays of size vectorSize
-	// Number of nodes * array size for each node
-	size_t arraySize = (size_t) (ctx->gg.nnodes * vectorSize);
-	ctx->minDistances.data.alloc(arraySize);
-	ctx->shortPathCounts.data.alloc(arraySize);
-	ctx->dependencyValues.data.alloc(arraySize);
+	// Init the fields
+	// Custom so we can make flat-map arrays
+	unsigned num_hosts = ctx->num_hosts;
+	load_array_field_CUDA(ctx, &ctx->minDistances, num_hosts);
+	load_array_field_CUDA(ctx, &ctx->shortPathCounts, num_hosts);
+	load_array_field_CUDA(ctx, &ctx->dependencyValues, num_hosts);
 
-	// Make vectorSize accessible from device
-	copyVectorSizeToDevice(vectorSize);
-
-	// Set all memory to 0
+	// Init memory
 	reset_CUDA_context(ctx);
+
+	// Make vectorSize easily accessible from device
+	cudaMemset(&flatMapArraySize, vectorSize, sizeof(unsigned));
 
 	// Finish op
 	cudaDeviceSynchronize();

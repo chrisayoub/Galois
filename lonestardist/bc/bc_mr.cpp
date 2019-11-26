@@ -596,20 +596,6 @@ int main(int argc, char** argv) {
   galois::StatTimer StatTimer_total("TimerTotal", REGION_NAME);
   StatTimer_total.start();
 
-  galois::gPrint("[", net.ID, "] InitializeGraph\n");
-  Graph* hg;
-#ifdef __GALOIS_HET_CUDA__
-  std::tie(hg, syncSubstrate) = distGraphInitialization<NodeData, void, false>(&cuda_ctx);
-#else
-  // false = iterate over in edges
-  std::tie(hg, syncSubstrate) = distGraphInitialization<NodeData, void, false>();
-#endif
-
-  if (totalNumSources == 0) {
-    galois::gDebug("Total num sources unspecified");
-    totalNumSources = hg->globalSize();
-  }
-
   if (useSingleSource) {
     totalNumSources    = 1;
     numSourcesPerRound = 1;
@@ -623,6 +609,20 @@ int main(int argc, char** argv) {
 
   // Backup the number of sources per round
   uint64_t origNumRoundSources = numSourcesPerRound;
+
+  galois::gPrint("[", net.ID, "] InitializeGraph\n");
+  Graph* hg;
+#ifdef __GALOIS_HET_CUDA__
+  std::tie(hg, syncSubstrate) = distGraphInitialization<NodeData, void, false>(&cuda_ctx);
+#else
+  // false = iterate over in edges
+  std::tie(hg, syncSubstrate) = distGraphInitialization<NodeData, void, false>();
+#endif
+
+  if (totalNumSources == 0) {
+    galois::gDebug("Total num sources unspecified");
+    totalNumSources = hg->globalSize();
+  }
 
   // Start graph initialization
   galois::StatTimer StatTimer_graph_init("TIMER_GRAPH_INIT", REGION_NAME);
@@ -803,9 +803,12 @@ int main(int argc, char** argv) {
         bc = get_node_betweeness_centrality_cuda(cuda_ctx, *ii);
     } else if (personality == CPU)
 #endif
-        bc = (*hg).getData(*ii).bc;
-        sprintf(v_out, "%lu %.9f\n", (*hg).getGID(*ii), bc);
-      } else {
+		{
+			bc = (*hg).getData(*ii).bc;
+			sprintf(v_out, "%lu %.9f\n", (*hg).getGID(*ii), bc);
+		}
+      }
+      else {
 #ifdef __GALOIS_HET_CUDA__
     	// Do nothing
 #else

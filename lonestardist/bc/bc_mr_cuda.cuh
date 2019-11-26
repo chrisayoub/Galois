@@ -18,6 +18,12 @@ void kernel_sizing(CSRGraph &, dim3 &, dim3 &);
 using ShortPathType = double;
 
 struct CUDA_Context : public CUDA_Context_Common {
+	// Needed so we can init the correct sizing on the 3 fields below
+	unsigned vectorSize;
+
+	// Need to save this value for later
+	unsigned num_hosts;
+
 	// Field from NodeData: sourceData, array of BCData
 
 	// Array of minDistance
@@ -48,18 +54,42 @@ bool init_CUDA_context(struct CUDA_Context* ctx, int device) {
 	return init_CUDA_context_common(ctx, device);
 }
 
+// Modified from include/galois/cuda/Context.h
+template <typename Type>
+void load_array_field_CUDA(struct CUDA_Context* ctx, struct CUDA_Context_Field<Type>* field, unsigned num_hosts) {
+	// Allocate number of members for data that we needed for flat 2D array
+	unsigned data_nmeb = ctx->gg.nnodes * ctx->vectorSize;
+	field->data.alloc(data_nmeb);
+
+	// Rest of function stays the same
+	size_t max_shared_size = 0; // for union across master/mirror of all hosts
+	for (uint32_t h = 0; h < num_hosts; ++h) {
+		if (ctx->master.num_nodes[h] > max_shared_size) {
+			max_shared_size = ctx->master.num_nodes[h];
+		}
+	}
+	for (uint32_t h = 0; h < num_hosts; ++h) {
+		if (ctx->mirror.num_nodes[h] > max_shared_size) {
+			max_shared_size = ctx->mirror.num_nodes[h];
+		}
+	}
+	field->shared_data.alloc(max_shared_size);
+	field->is_updated.alloc(1);
+	field->is_updated.cpu_wr_ptr()->alloc(ctx->gg.nnodes);
+}
+
 void load_graph_CUDA(struct CUDA_Context* ctx, MarshalGraph &g, unsigned num_hosts) {
 	load_graph_CUDA_common(ctx, g, num_hosts);
 
-	load_graph_CUDA_field(ctx, &ctx->minDistances, num_hosts);
-	load_graph_CUDA_field(ctx, &ctx->shortPathCounts, num_hosts);
-	load_graph_CUDA_field(ctx, &ctx->dependencyValues, num_hosts);
+	// Note: not loading fields for sourceData here, need vectorSize later
+	// See: InitializeGraph_allNodes_cuda
+	// Will save value for later
+	ctx->num_hosts = num_hosts;
+
 
 	load_graph_CUDA_field(ctx, &ctx->dTree, num_hosts);
 	load_graph_CUDA_field(ctx, &ctx->bc, num_hosts);
 	load_graph_CUDA_field(ctx, &ctx->roundIndexToSend, num_hosts);
-
-	reset_CUDA_context(ctx);
 }
 
 void reset_CUDA_context(struct CUDA_Context* ctx) {
