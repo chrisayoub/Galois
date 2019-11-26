@@ -18,6 +18,11 @@ unsigned getArrayIndex(unsigned node, unsigned index) {
 // *************************
 
 __global__
+void InitializeGraph(unsigned vectorSize) {
+	flatMapArraySize = vectorSize;
+}
+
+__global__
 void InitializeIteration(
 		CSRGraph graph,
 		unsigned int __begin, unsigned int __end,
@@ -329,10 +334,6 @@ uint64_t* copyVectorToDevice(const std::vector<uint64_t>& vec) {
 	return arr;
 }
 
-void copyVectorSizeToDevice(unsigned vectorSize) {
-	cudaMemset(&flatMapArraySize, vectorSize, sizeof(unsigned));
-}
-
 // *******************************
 // ** Kernel wrappers (host code)
 // ********************************
@@ -349,8 +350,8 @@ void InitializeGraph_allNodes_cuda(struct CUDA_Context* ctx, unsigned vectorSize
 	// Init memory
 	reset_CUDA_context(ctx);
 
-	// Make vectorSize easily accessible from device
-	cudaMemset(&flatMapArraySize, vectorSize, sizeof(unsigned));
+	// Copy vectorSize to device for utility
+	InitializeGraph<<<1, 1>>>(vectorSize);
 
 	// Finish op
 	cudaDeviceSynchronize();

@@ -86,7 +86,6 @@ void load_graph_CUDA(struct CUDA_Context* ctx, MarshalGraph &g, unsigned num_hos
 	// Will save value for later
 	ctx->num_hosts = num_hosts;
 
-
 	load_graph_CUDA_field(ctx, &ctx->dTree, num_hosts);
 	load_graph_CUDA_field(ctx, &ctx->bc, num_hosts);
 	load_graph_CUDA_field(ctx, &ctx->roundIndexToSend, num_hosts);
