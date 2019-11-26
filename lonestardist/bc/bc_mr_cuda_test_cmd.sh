@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Get inputs
+make input
+
 # Build
 make -j bc_mr
 
