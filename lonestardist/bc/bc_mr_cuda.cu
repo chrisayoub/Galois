@@ -39,7 +39,7 @@ void InitializeIteration(
   for (index_type src = __begin + tid; src < __end; src += nthreads)
   {
 	  p_roundIndexToSend[src] = infinity;
-	  CUDATree dTree = p_dTree[src];
+	  CUDATree& dTree = p_dTree[src];
 	  dTree.initialize();
 
 	  // Loop through sources
@@ -80,7 +80,7 @@ void FindMessageToSync(CSRGraph graph,
 	for (index_type src = __begin + tid; src < __end; src += nthreads)
 	{
 		uint32_t* roundIndexToSend = &p_roundIndexToSend[src];
-		CUDATree dTree = p_dTree[src];
+		CUDATree& dTree = p_dTree[src];
 
 		uint32_t newRoundIndex = dTree.getIndexToSend(roundNumber);
 		*roundIndexToSend = newRoundIndex;
@@ -112,7 +112,7 @@ void ConfirmMessageToSend(
 
 	  for (index_type src = __begin + tid; src < __end; src += nthreads)
 	  {
-		  CUDATree dTree = p_dTree[src];
+		  CUDATree& dTree = p_dTree[src];
 		  if (p_roundIndexToSend[src] != infinity) {
 			  dTree.markSent(roundNumber);
 		  }
@@ -205,7 +205,7 @@ void BackFindMessageToSend(
 		// if zero distances already reached, there is no point sending things
 		// out since we don't care about dependecy for sources (i.e. distance
 		// 0)
-		CUDATree dTree = p_dTree[src];
+		CUDATree& dTree = p_dTree[src];
 		if (!dTree.isZeroReached()) {
 			uint32_t newRoundIndex = dTree.backGetIndexToSend(roundNumber, lastRoundNumber);
 			p_roundIndexToSend[src] = newRoundIndex;
