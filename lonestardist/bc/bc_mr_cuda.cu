@@ -50,7 +50,7 @@ void InitializeIteration(
 			  p_minDistances[idx] = 0;
 			  p_shortPathCounts[idx] = 1;
 			  p_dependencyValues[idx] = 0.0;
-			  dTree.setDistance(i, 0);
+			  dTree.setDistance(i, 0, tid);
 		  } else {
 			  // This is a non-source node
 			  p_minDistances[idx] = infinity;
@@ -156,7 +156,7 @@ void SendAPSPMessages(
 
 				if (oldValue > newValue) {
 					p_minDistances[destIndex] = newValue;
-					p_dTree[dest].setDistance(indexToSend, oldValue, newValue);
+					p_dTree[dest].setDistance(indexToSend, oldValue, newValue, tid);
 					// overwrite short path with this node's shortest path
 					p_shortPathCounts[destIndex] = p_shortPathCounts[srcIndex];
 				} else if (oldValue == newValue) {
