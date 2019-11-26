@@ -341,6 +341,8 @@ uint64_t* copyVectorToDevice(const std::vector<uint64_t>& vec) {
 void InitializeGraph_allNodes_cuda(struct CUDA_Context* ctx, unsigned vectorSize)
 {
 	// Init the fields
+	ctx->vectorSize = vectorSize;
+
 	// Custom so we can make flat-map arrays
 	unsigned num_hosts = ctx->num_hosts;
 	load_array_field_CUDA(ctx, &ctx->minDistances, num_hosts);

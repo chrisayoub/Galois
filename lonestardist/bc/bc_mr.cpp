@@ -124,7 +124,8 @@ void InitializeGraph(Graph& graph) {
 
 #ifdef __GALOIS_HET_CUDA__
 	if (personality == GPU_CUDA) {
-		InitializeGraph_allNodes_cuda(cuda_ctx, vectorSize);
+		unsigned vecSize = vectorSize;
+		InitializeGraph_allNodes_cuda(cuda_ctx, vecSize);
 	} else if (personality == CPU)
 #endif
 	galois::do_all(
@@ -596,20 +597,6 @@ int main(int argc, char** argv) {
   galois::StatTimer StatTimer_total("TimerTotal", REGION_NAME);
   StatTimer_total.start();
 
-  if (useSingleSource) {
-    totalNumSources    = 1;
-    numSourcesPerRound = 1;
-  }
-
-  // set vector size in node data
-  if (vectorSize == 0) {
-    vectorSize = numSourcesPerRound;
-  }
-  GALOIS_ASSERT(vectorSize >= numSourcesPerRound);
-
-  // Backup the number of sources per round
-  uint64_t origNumRoundSources = numSourcesPerRound;
-
   galois::gPrint("[", net.ID, "] InitializeGraph\n");
   Graph* hg;
 #ifdef __GALOIS_HET_CUDA__
@@ -623,6 +610,20 @@ int main(int argc, char** argv) {
     galois::gDebug("Total num sources unspecified");
     totalNumSources = hg->globalSize();
   }
+
+  if (useSingleSource) {
+    totalNumSources    = 1;
+    numSourcesPerRound = 1;
+  }
+
+  // set vector size in node data
+  if (vectorSize == 0) {
+    vectorSize = numSourcesPerRound;
+  }
+  GALOIS_ASSERT(vectorSize >= numSourcesPerRound);
+
+  // Backup the number of sources per round
+  uint64_t origNumRoundSources = numSourcesPerRound;
 
   // Start graph initialization
   galois::StatTimer StatTimer_graph_init("TIMER_GRAPH_INIT", REGION_NAME);
