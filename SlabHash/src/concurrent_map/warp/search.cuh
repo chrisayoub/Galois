@@ -52,7 +52,7 @@ GpuSlabHashContext<KeyT, ValueT, SlabHashTypeT::ConcurrentMap>::searchKey(
       uint32_t next_ptr = __shfl_sync(0xFFFFFFFF, src_unit_data, 31, 32);
       if (next_ptr == SlabHashT::EMPTY_INDEX_POINTER) {  // not found
         if (laneId == src_lane) {
-          myValue = static_cast<ValueT>(SEARCH_NOT_FOUND);
+          myValue = reinterpret_cast<ValueT>(SEARCH_NOT_FOUND);   //ZXD
           to_be_searched = false;
         }
       } else {

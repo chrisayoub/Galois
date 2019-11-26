@@ -196,14 +196,15 @@ class GpuSlabHash<KeyT, ValueT, SlabHashTypeT::ConcurrentMap> {
   size_t slab_unit_size_;  // size of each slab unit in bytes (might differ
                            // based on the type)
 
-  // slab hash context, contains everything that a GPU application needs to be
-  // able to use this data structure
-  GpuSlabHashContext<KeyT, ValueT, SlabHashTypeT::ConcurrentMap> gpu_context_;
-
   // const pointer to an allocator that all instances of slab hash are going to
   // use. The allocator itself is not owned by this class
   DynamicAllocatorT* dynamic_allocator_;
   uint32_t device_idx_;
+
+ protected:
+  // slab hash context, contains everything that a GPU application needs to be
+  // able to use this data structure
+  GpuSlabHashContext<KeyT, ValueT, SlabHashTypeT::ConcurrentMap> gpu_context_;
 
  public:
   GpuSlabHash(const uint32_t num_buckets,
