@@ -127,6 +127,8 @@ public:
 //    if (oldDistance == newDistance) {
 //      return;
 //    }
+    maxDistance = maxDistance > newDistance ? maxDistance : newDistance;
+
     BitSet *myBitSet = search(oldDistance);
     bool existed = false;
     // if it exists, remove it // shouldn't it always exist?
