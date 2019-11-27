@@ -34,7 +34,17 @@ public:
   }
 
   __device__
+  void backward_indicator() {
+
+  }
+
+  __device__
   bool test_set_indicator(size_t pos, bool val=true) {
+    return true;
+  }
+
+  __device__
+  bool none() {
     return true;
   }
 

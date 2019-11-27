@@ -42,12 +42,14 @@ class CUDATree : public GpuSlabHash<uint32_t, BitSet*, SlabHashTypeT::Concurrent
     gpu_context_.insertPair(toInsert, laneId, myDistance, myBitSet, myBucket, local_allocator_ctx);
   }
 
-public:
-  CUDATree() // double check this. where is this called?
-  : GpuSlabHash<uint32_t, BitSet*, SlabHashTypeT::ConcurrentMap>(
-          num_buckets, new DynamicAllocatorT(), g_gpu_device_idx) {}
-  //! map to a bitset of nodes that belong in a particular distance group
-
+  __device__
+  bool notExistOrEmpty(uint32_t myDistance) {
+    BitSet *myBitSet = search(myDistance);
+    if (reinterpret_cast<uint64_t>(myBitSet) != SEARCH_NOT_FOUND) {
+      return true;
+    }
+    return myBitSet->none();
+  }
 
   //! number of sources that have already been sent out
   uint32_t numSentSources;
@@ -56,7 +58,13 @@ public:
   //! indicates if zero distance has been reached for backward iteration
   bool zeroReached;
 
-  uint32_t maxDistance;
+  uint32_t maxDistance, curDistance, endDistance;
+
+public:
+  CUDATree() // double check this. where is this called?
+          : GpuSlabHash<uint32_t, BitSet*, SlabHashTypeT::ConcurrentMap>(
+          num_buckets, new DynamicAllocatorT(), g_gpu_device_idx) {}
+  //! map to a bitset of nodes that belong in a particular distance group
 
 	__device__ // __forceinline__?
 	void initialize() {
@@ -147,7 +155,20 @@ public:
 
 	__device__
 	void prepForBackPhase() {
-		// TODO
+    curDistance = maxDistance;
+    endDistance = -1; // or 0? need to worry about overflow?
+
+    if (curDistance != endDistance) {
+      // find non-empty distance if first one happens to be empty
+      if (notExistOrEmpty(curDistance)) {
+        for (--curDistance; curDistance != endDistance && notExistOrEmpty(curDistance); --curDistance);
+      }
+    }
+
+    // setup if not empty
+    if (curDistance != endDistance) {
+      search(curDistance)->backward_indicator();
+    }
 	}
 
 	__device__
