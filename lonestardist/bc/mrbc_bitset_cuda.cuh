@@ -29,12 +29,12 @@ public:
   }
 
   __device__
-  void forward_indicator() {
+  size_t forward_indicator() {
 
   }
 
   __device__
-  void backward_indicator() {
+  size_t backward_indicator() {
 
   }
 
@@ -46,6 +46,11 @@ public:
   __device__
   bool none() {
     return true;
+  }
+
+  __device__
+  bool nposInd() {
+    return indicator == npos;
   }
 
 };

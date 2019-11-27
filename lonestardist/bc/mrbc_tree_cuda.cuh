@@ -173,9 +173,41 @@ public:
 
 	__device__
 	uint32_t backGetIndexToSend(const uint32_t roundNumber,
-            const uint32_t lastRound) {
-		// TODO
-		return 0;
+                              const uint32_t lastRound) {
+    uint32_t indexToReturn = infinity;
+
+    while (curDistance != endDistance) {
+      if ((curDistance + numSentSources - 1) != (lastRound - roundNumber)){
+        // round to send not reached yet; get out
+        return infinity;
+      }
+
+      if (curDistance == 0) {
+        zeroReached = true;
+        return infinity;
+      }
+
+      BitSet* curSet = search(curDistance);
+      if (!curSet->nposInd()) {
+        // this number should be sent out this round
+        indexToReturn = curSet->backward_indicator();
+        numSentSources--;
+        break;
+      } else {
+        // set exhausted; go onto next set
+        for (--curDistance; curDistance != endDistance && notExistOrEmpty(curDistance); --curDistance);
+
+        // if another set exists, set it up, else do nothing
+        if (curDistance != endDistance) {
+          search(curDistance)->backward_indicator();
+        }
+      }
+    }
+
+    if (curDistance == endDistance) {
+      assert(numSentSources == 0);
+    }
+		return indexToReturn;
 	}
 
 	__device__
