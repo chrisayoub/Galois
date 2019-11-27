@@ -114,7 +114,7 @@ void ConfirmMessageToSend(
 	  {
 		  CUDATree& dTree = p_dTree[src];
 		  if (p_roundIndexToSend[src] != infinity) {
-			  dTree.markSent(roundNumber);
+			  dTree.markSent(roundNumber, tid);
 		  }
 	  }
 }

@@ -12,7 +12,36 @@ const uint32_t num_buckets = 10;
 size_t g_gpu_device_idx{0};  // the gpu device to run tests on
 
 using BitSet = CUDABitSet;
-class CUDATree : GpuSlabHash<uint32_t, BitSet*, SlabHashTypeT::ConcurrentMap> {
+class CUDATree : public GpuSlabHash<uint32_t, BitSet*, SlabHashTypeT::ConcurrentMap> {
+  __device__
+  BitSet * get(uint32_t myDistance, uint32_t tid) {
+    BitSet *myBitSet = search(myDistance);
+    if (reinterpret_cast<uint64_t>(myBitSet) != SEARCH_NOT_FOUND) {
+      myBitSet = new BitSet();
+      insert(myDistance, myBitSet, tid);
+    }
+    return myBitSet;
+  }
+  __device__
+  BitSet * search(uint32_t myDistance) {
+    bool toSearch = true;
+    uint32_t laneId = threadIdx.x & 0x1F;
+    BitSet *myBitSet = reinterpret_cast<BitSet *>(SEARCH_NOT_FOUND);
+    uint32_t myBucket = gpu_context_.computeBucket(myDistance);
+    gpu_context_.searchKey(toSearch, laneId, myDistance, myBitSet, myBucket);
+    return myBitSet;
+  }
+
+  __device__
+  void insert(uint32_t myDistance, BitSet* myBitSet, uint32_t tid) {
+    bool toInsert = true;
+    uint32_t laneId = threadIdx.x & 0x1F;
+    uint32_t myBucket = gpu_context_.computeBucket(myDistance);
+    AllocatorContextT local_allocator_ctx(gpu_context_.getAllocatorContext());
+    local_allocator_ctx.initAllocator(tid, laneId);
+    gpu_context_.insertPair(toInsert, laneId, myDistance, myBitSet, myBucket, local_allocator_ctx);
+  }
+
 public:
   CUDATree() // double check this. where is this called?
   : GpuSlabHash<uint32_t, BitSet*, SlabHashTypeT::ConcurrentMap>(
@@ -27,6 +56,8 @@ public:
   //! indicates if zero distance has been reached for backward iteration
   bool zeroReached;
 
+  uint32_t maxDistance;
+
 	__device__ // __forceinline__?
 	void initialize() {
     /* TODO:  slab_hash doesn't support clear
@@ -39,30 +70,18 @@ public:
     numNonInfinity = 0;
     // reset the flag for backward phase
     zeroReached = false;
+
+    maxDistance = 0;
 	}
 
 	__device__
 	void setDistance(uint32_t index, uint32_t newDistance, uint32_t tid) {
-	  // get distanceTree[newDistance]
-    bool toSearch = true;
-	  uint32_t laneId = threadIdx.x & 0x1F;
-    BitSet *myBitSet = reinterpret_cast<BitSet *>(SEARCH_NOT_FOUND); // is this safe?
-    uint32_t myBucket = gpu_context_.computeBucket(newDistance);
-    gpu_context_.searchKey(toSearch, laneId, newDistance, myBitSet, myBucket);
+    // Only for iterstion initialization
+    // assert(newDistance == 0);
+    // assert(distanceTree[newDistance].size() == numSourcesPerRound);
 
-    if (reinterpret_cast<uint64_t>(myBitSet) != SEARCH_NOT_FOUND) {
-      // newDistance exists
-      myBitSet->set_indicator(index);
-    } else {
-      // newDistance not exists, create myBitSet and write back the pointer
-      myBitSet = new BitSet();
-      myBitSet->set_indicator(index);
-
-      bool toInsert = true;
-      AllocatorContextT local_allocator_ctx(gpu_context_.getAllocatorContext());
-      local_allocator_ctx.initAllocator(tid, laneId);
-      gpu_context_.insertPair(toInsert, laneId, newDistance, myBitSet, myBucket, local_allocator_ctx);
-    }
+    get(newDistance, tid)->set_indicator(index);
+    // maxDistance = maxDistance > newDistance ? maxDistance : newDistance;
 
     numNonInfinity++;
 	}
@@ -72,12 +91,7 @@ public:
     uint32_t distanceToCheck = roundNumber - numSentSources;
     uint32_t indexToSend = infinity;
 
-    bool toSearch = true;
-    uint32_t laneId = threadIdx.x & 0x1F;
-    BitSet *myBitSet = reinterpret_cast<BitSet *>(SEARCH_NOT_FOUND); // is this safe?
-    uint32_t myBucket = gpu_context_.computeBucket(distanceToCheck);
-    gpu_context_.searchKey(toSearch, laneId, distanceToCheck, myBitSet, myBucket);
-
+    BitSet *myBitSet = search(distanceToCheck);
     if (reinterpret_cast<uint64_t>(myBitSet) == SEARCH_NOT_FOUND) {
       auto index = myBitSet->getIndicator();
       if (index != myBitSet->npos) {
@@ -101,16 +115,9 @@ public:
 	bool moreWork() { return numNonInfinity > numSentSources; }
 
 	__device__
-	void markSent(uint32_t roundNumber) {
+	void markSent(uint32_t roundNumber, uint32_t tid) {
     uint32_t distanceToCheck = roundNumber - numSentSources;
-    bool toSearch = true;
-    uint32_t laneId = threadIdx.x & 0x1F;
-    BitSet *myBitSet = reinterpret_cast<BitSet *>(SEARCH_NOT_FOUND);
-    uint32_t myBucket = gpu_context_.computeBucket(distanceToCheck);
-    gpu_context_.searchKey(toSearch, laneId, distanceToCheck, myBitSet, myBucket);
-
-    myBitSet->forward_indicator();
-
+    get(distanceToCheck, tid)->forward_indicator();
     numSentSources++;
 	}
 
