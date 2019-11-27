@@ -33,6 +33,11 @@ public:
 
   }
 
+  __device__
+  bool test_set_indicator(size_t pos, bool val=true) {
+    return true;
+  }
+
 };
 
 #endif

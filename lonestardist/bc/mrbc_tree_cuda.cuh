@@ -92,7 +92,7 @@ public:
     uint32_t indexToSend = infinity;
 
     BitSet *myBitSet = search(distanceToCheck);
-    if (reinterpret_cast<uint64_t>(myBitSet) == SEARCH_NOT_FOUND) {
+    if (reinterpret_cast<uint64_t>(myBitSet) != SEARCH_NOT_FOUND) {
       auto index = myBitSet->getIndicator();
       if (index != myBitSet->npos) {
         indexToSend = index;
@@ -122,8 +122,25 @@ public:
 	}
 
 	__device__
-	void setDistance(uint32_t index, uint32_t oldDistance, uint32_t newDistance, uint32_t uid) {
-		// TODO
+	void setDistance(uint32_t index, uint32_t oldDistance, uint32_t newDistance, uint32_t tid) {
+	  // taken care of by callee, oldDistance always > newDistance
+//    if (oldDistance == newDistance) {
+//      return;
+//    }
+    BitSet *myBitSet = search(oldDistance);
+    bool existed = false;
+    // if it exists, remove it // shouldn't it always exist?
+    if (reinterpret_cast<uint64_t>(myBitSet) != SEARCH_NOT_FOUND) {
+      existed = myBitSet->test_set_indicator(index, false); // Test, set, update
+    }
+
+    // if it didn't exist before, add to number of non-infinity nodes
+    if (!existed) {
+      numNonInfinity++;
+    }
+
+    // asset(distanceTree[newDistance].size() == numSourcesPerRound);
+    get(newDistance, tid)->set_indicator(index);
 	}
 
 	__device__
