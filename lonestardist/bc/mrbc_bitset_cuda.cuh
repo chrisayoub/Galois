@@ -7,15 +7,15 @@
 #include "galois/cuda/HostDecls.h"
 #include "slab_hash.cuh"
 
-class CUDABitSet {
+class CUDABitSet : DynamicBitset {
   size_t indicator;
 public:
   bool notFound;
   static const size_t npos = std::numeric_limits<size_t>::max();
 
   __device__
-  CUDABitSet(uint32_t size = 0) {
-    if (size == SEARCH_NOT_FOUND) notFound = true;
+  CUDABitSet(uint32_t size = 0) : DynamicBitset(size) {
+
   }
 
   __device__

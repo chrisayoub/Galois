@@ -43,30 +43,30 @@ class DynamicBitset {
   uint64_t* bit_vector;
 
 public:
-  DynamicBitset() {
+  __device__ __host__ DynamicBitset() {
     num_bits_capacity = 0;
     num_bits          = 0;
     bit_vector        = NULL;
   }
 
-  DynamicBitset(size_t nbits) { alloc(nbits); }
+  __device__ __host__ DynamicBitset(size_t nbits) { alloc(nbits); }
 
-  ~DynamicBitset() {
+  __device__ __host__ ~DynamicBitset() {
     if (bit_vector != NULL)
       cudaFree(bit_vector);
   }
 
-  void alloc(size_t nbits) {
+  __device__ __host__ void alloc(size_t nbits) {
     assert(num_bits == 0);
     assert(sizeof(unsigned long long int) * 8 == 64);
     assert(sizeof(uint64_t) * 8 == 64);
     num_bits_capacity = nbits;
     num_bits          = nbits;
-    CUDA_SAFE_CALL(cudaMalloc(&bit_vector, vec_size() * sizeof(uint64_t)));
+    cudaMalloc(&bit_vector, vec_size() * sizeof(uint64_t));
     reset();
   }
 
-  void resize(size_t nbits) {
+  __device__ __host__ void resize(size_t nbits) {
     assert(nbits <= num_bits_capacity);
     num_bits = nbits;
   }
@@ -82,8 +82,8 @@ public:
     return vec_size() * sizeof(uint64_t);
   }
 
-  void reset() {
-    CUDA_SAFE_CALL(cudaMemset(bit_vector, 0, vec_size() * sizeof(uint64_t)));
+  __device__ __host__ void reset() {
+    cudaMemset(bit_vector, 0, vec_size() * sizeof(uint64_t));
   }
 
   // assumes bit_vector is not updated (set) in parallel
