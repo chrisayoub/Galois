@@ -97,8 +97,24 @@ class CUDABitSet : DynamicBitset {
            (curBlock? find_from_block(--curBlock, false) : npos);
   }
 
+  __device__
+  bool test_set(size_t pos, bool val=true) {
+    // TODO: review test_set and the entire CUDA tree
+    bool const ret = test(pos);
+    if (ret != val) {
+      auto word = get_word(pos);
+      unsigned long long int mask = get_mask(pos); // why ull?
+      uint64_t old_val = bit_vector[word];
+      if (val) {
+        atomicOr((unsigned long long int*)&bit_vector[word], mask);
+      } else {
+        atomicAnd((unsigned long long int*)&bit_vector[word], ~mask);
+      }
+    }
+    return ret;
+  }
+
 public:
-  bool notFound;
   static const size_t npos = std::numeric_limits<size_t>::max();
 
   __device__
@@ -135,7 +151,13 @@ public:
 
   __device__
   bool test_set_indicator(size_t pos, bool val=true) {
-    return true;
+    if (test_set(pos, val)) {
+      if (pos == indicator) {
+        forward_indicator();
+      }
+      return true;
+    }
+    return false;
   }
 
   __device__

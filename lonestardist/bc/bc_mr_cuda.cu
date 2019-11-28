@@ -39,7 +39,7 @@ void InitializeIteration(
   for (index_type src = __begin + tid; src < __end; src += nthreads)
   {
 	  p_roundIndexToSend[src] = infinity;
-	  CUDATree& dTree = p_dTree[src];
+	  CUDATree& dTree = p_dTree[src]; // CUDATree -> CUDATree& to avoid value copy
 	  dTree.initialize();
 
 	  // Loop through sources
@@ -50,7 +50,7 @@ void InitializeIteration(
 			  p_minDistances[idx] = 0;
 			  p_shortPathCounts[idx] = 1;
 			  p_dependencyValues[idx] = 0.0;
-			  dTree.setDistance(i, 0, tid);
+			  dTree.setDistance(i, 0, tid); // pass tid to dTree
 		  } else {
 			  // This is a non-source node
 			  p_minDistances[idx] = infinity;
