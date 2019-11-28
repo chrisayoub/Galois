@@ -16,8 +16,9 @@ class CUDATree : public GpuSlabHash<uint32_t, BitSet*, SlabHashTypeT::Concurrent
   __device__
   BitSet * get(uint32_t myDistance, uint32_t tid) {
     BitSet *myBitSet = search(myDistance);
-    if (reinterpret_cast<uint64_t>(myBitSet) != SEARCH_NOT_FOUND) {
-      myBitSet = new BitSet();
+    // if not exist, create and insert an empty bitset
+    if (reinterpret_cast<uint64_t>(myBitSet) == SEARCH_NOT_FOUND) {
+      myBitSet = new BitSet(numSources);
       insert(myDistance, myBitSet, tid);
     }
     return myBitSet;
@@ -48,7 +49,7 @@ class CUDATree : public GpuSlabHash<uint32_t, BitSet*, SlabHashTypeT::Concurrent
     BitSet *myBitSet = search(myDistance);
     // since we iterate distances by value not iterator,
     // some distances may not exist in the hash map
-    if (reinterpret_cast<uint64_t>(myBitSet) != SEARCH_NOT_FOUND) {
+    if (reinterpret_cast<uint64_t>(myBitSet) == SEARCH_NOT_FOUND) {
       return true;
     }
     return myBitSet->none();
@@ -118,10 +119,10 @@ public:
     uint32_t distanceToCheck = roundNumber - numSentSources;
     uint32_t indexToSend = infinity;
 
-    BitSet *myBitSet = search(distanceToCheck);
-    if (reinterpret_cast<uint64_t>(myBitSet) != SEARCH_NOT_FOUND) {
-      auto index = myBitSet->getIndicator();
-      if (index != myBitSet->npos) {
+    BitSet *setToCheck = search(distanceToCheck);
+    if (reinterpret_cast<uint64_t>(setToCheck) != SEARCH_NOT_FOUND) {
+      auto index = setToCheck->getIndicator();
+      if (index != setToCheck->npos) {
         indexToSend = index;
       }
     }
@@ -156,11 +157,11 @@ public:
 //    }
     maxDistance = maxDistance > newDistance ? maxDistance : newDistance;
 
-    BitSet *myBitSet = search(oldDistance);
+    BitSet *setToChange = search(oldDistance);
     bool existed = false;
     // if it exists, remove it // shouldn't it always exist?
-    if (reinterpret_cast<uint64_t>(myBitSet) != SEARCH_NOT_FOUND) {
-      existed = myBitSet->test_set_indicator(index, false); // Test, set, update
+    if (reinterpret_cast<uint64_t>(setToChange) != SEARCH_NOT_FOUND) {
+      existed = setToChange->test_set_indicator(index, false); // Test, set, update
     }
 
     // if it didn't exist before, add to number of non-infinity nodes
