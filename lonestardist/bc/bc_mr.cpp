@@ -125,7 +125,7 @@ void InitializeGraph(Graph& graph) {
 #ifdef __GALOIS_HET_CUDA__
 	if (personality == GPU_CUDA) {
 		unsigned vecSize = vectorSize;
-		InitializeGraph_allNodes_cuda(cuda_ctx, vecSize);
+		InitializeGraph_allNodes_cuda(cuda_ctx, vecSize, numSourcesPerRound);
 	} else if (personality == CPU)
 #endif
 	galois::do_all(

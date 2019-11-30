@@ -1,4 +1,5 @@
 #include "bc_mr_cuda.cuh"
+#include <new>
 
 // *******************************
 // ** Helper functions (device code)
@@ -338,7 +339,7 @@ uint64_t* copyVectorToDevice(const std::vector<uint64_t>& vec) {
 // ** Kernel wrappers (host code)
 // ********************************
 
-void InitializeGraph_allNodes_cuda(struct CUDA_Context* ctx, unsigned vectorSize)
+void InitializeGraph_allNodes_cuda(struct CUDA_Context* ctx, unsigned vectorSize, unsigned numSourcesPerRound)
 {
 	// Init the fields
 	ctx->vectorSize = vectorSize;
@@ -354,6 +355,15 @@ void InitializeGraph_allNodes_cuda(struct CUDA_Context* ctx, unsigned vectorSize
 
 	// Copy vectorSize to device for utility
 	InitializeGraph<<<1, 1>>>(vectorSize);
+
+	// Call constructor for all trees
+	CUDATree* trees = ctx->dTree.data.cpu_wr_ptr();
+	for (unsigned i = 0; i < ctx->gg.nnodes; i++) {
+		CUDATree* dest = &trees[i];
+		CUDATree* tree = new(dest) CUDATree(numSourcesPerRound);
+	}
+	// Copy allocations from CPU to GPU
+	ctx->dTree.data.copy(0, 1);
 
 	// Finish op
 	cudaDeviceSynchronize();
