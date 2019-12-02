@@ -83,7 +83,6 @@ class CUDATree : public GpuSlabHash<uint32_t, BitSet*, SlabHashTypeT::Concurrent
   uint32_t numSources;
 
 public:
-  __device__
   CUDATree(uint32_t numSourcesPerRound) // where is CUDATree instantiated?
           : GpuSlabHash<uint32_t, BitSet*, SlabHashTypeT::ConcurrentMap>(
           num_buckets, new DynamicAllocatorT(), g_gpu_device_idx),
