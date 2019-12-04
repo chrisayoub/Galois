@@ -5,7 +5,6 @@
 #include <cuda.h>
 #include "gg.h"
 #include "galois/cuda/HostDecls.h"
-#include "slab_hash.cuh"
 
 class CUDABitSet : DynamicBitset {
   size_t indicator;

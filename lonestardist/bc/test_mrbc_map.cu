@@ -2,50 +2,55 @@
 #include <cuda_runtime_api.h>
 #include <stdio.h>
 #include <iostream>
+
+#include "gg.h"
+#include "galois/cuda/HostDecls.h"
+#include "galois/cuda/DynamicBitset.h"
 #include "mrbc_map_cuda.cuh"
+
 #define DEVICE_ID 0
 
 __global__
 void testMap() {
 	uint32_t NUM_SRC = 10;
-	CUDAMap map = new CUDAMap(NUM_SRC);
+	CUDAMap* map = new CUDAMap(NUM_SRC);
 
 	uint32_t KEY = 3;
-	if (map.get(KEY) != nullptr) {
-		fprintf(stderr, "ERROR: should not contain key yet \n");
+	if (map->get(KEY) != nullptr) {
+		printf("ERROR: should not contain key yet \n");
 		return;
 	}
 
-	BitSet* b = map.get(3);
-	if (map.get(KEY) == nullptr) {
-		fprintf(stderr, "ERROR: should contain key \n");
+	BitSet* b = map->get(3);
+	if (map->get(KEY) == nullptr) {
+		printf("ERROR: should contain key \n");
 		return;
 	}
 
-	if (!map.notExistOrEmpty(KEY)) {
-		fprintf(stderr, "ERROR: is actually empty \n");
+	if (!map->notExistOrEmpty(KEY)) {
+		printf("ERROR: is actually empty \n");
 		return;
 	}
 
-	map.get(KEY)->set_indicator(1);
-	if (map.notExistOrEmpty(KEY)) {
-		fprintf(stderr, "ERROR: is NOT empty \n");
+	map->get(KEY)->set_indicator(1);
+	if (map->notExistOrEmpty(KEY)) {
+		printf("ERROR: is NOT empty \n");
 		return;
 	}
 
-	map.clear();
-	if (map.get(KEY) != nullptr) {
-		fprintf(stderr, "ERROR: should not contain key after clear \n");
+	map->clear();
+	if (map->get(KEY) != nullptr) {
+		printf("ERROR: should not contain key after clear \n");
 		return;
 	}
 
 	// Now try resizing with many inserts, ensure no crach
 	for (uint32_t i = 0; i < 50; i++) {
-		map.get(i);
+		map->get(i);
 	}
 
-	if (map.get(KEY + 5) == nullptr) {
-		fprintf(stderr, "ERROR: should contain key \n");
+	if (map->get(KEY + 5) == nullptr) {
+		printf("ERROR: should contain key \n");
 		return;
 	}
 

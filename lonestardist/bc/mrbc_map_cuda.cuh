@@ -37,7 +37,9 @@ private:
 
 		// Allocate new memory
 		unsigned newLength = length * 2 + 1;
-		MapPair* newStorage = (MapPair*) calloc(newLength, sizeof(MapPair));
+		size_t numBytes = newLength * sizeof(MapPair);
+		MapPair* newStorage = (MapPair*) malloc(numBytes);
+		memset(newStorage, 0, numBytes);
 
 		// Re-hash and place elements in new storage
 		for (unsigned i = 0; i < length; i++) {
@@ -93,12 +95,15 @@ private:
 public:
 	// TODO do we need to increase heap limit??
 // https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#dynamic-global-memory-allocation-and-operations
+	__device__
 	CUDAMap(uint32_t sources) {
 		// Set number of init elements
 		size = 0;
 		// Allocate init memory
 		const unsigned INIT_CAP = 20;
-		map = (MapPair*) calloc(INIT_CAP, sizeof(MapPair));
+		size_t numBytes = INIT_CAP * sizeof(MapPair);
+		map = (MapPair*) malloc(numBytes);
+		memset(map, 0, numBytes);
 		length = INIT_CAP;
 		// Init param for bitsets
 		numSources = sources;
