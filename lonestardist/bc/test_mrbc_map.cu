@@ -13,45 +13,52 @@ __global__
 void testMap(CUDAMap* map) {
 	uint32_t KEY = 3;
 
+	printf("1: Hello from block %d, thread %d\n", blockIdx.x, threadIdx.x);
 	if (map->get(KEY) != nullptr) {
 		printf("ERROR: should not contain key yet \n");
 		return;
 	}
 
+  printf("2: Hello from block %d, thread %d\n", blockIdx.x, threadIdx.x);
 	BitSet* b = map->get(3);
 	if (map->get(KEY) == nullptr) {
 		printf("ERROR: should contain key \n");
 		return;
 	}
 
+  printf("3: Hello from block %d, thread %d\n", blockIdx.x, threadIdx.x);
 	if (!map->notExistOrEmpty(KEY)) {
 		printf("ERROR: is actually empty \n");
 		return;
 	}
 
+  printf("4: Hello from block %d, thread %d\n", blockIdx.x, threadIdx.x);
 	map->get(KEY)->set_indicator(1);
 	if (map->notExistOrEmpty(KEY)) {
 		printf("ERROR: is NOT empty \n");
 		return;
 	}
 
+  printf("5: Hello from block %d, thread %d\n", blockIdx.x, threadIdx.x);
 	map->clear();
 	if (map->get(KEY) != nullptr) {
 		printf("ERROR: should not contain key after clear \n");
 		return;
 	}
 
+  printf("6: Hello from block %d, thread %d\n", blockIdx.x, threadIdx.x);
 	// Now try resizing with many inserts, ensure no crach
 	for (uint32_t i = 0; i < 50; i++) {
 		map->get(i);
 	}
 
+  printf("7: Hello from block %d, thread %d\n", blockIdx.x, threadIdx.x);
 	if (map->get(KEY + 5) == nullptr) {
 		printf("ERROR: should contain key \n");
 		return;
 	}
 
-	printf("All map cases passed!");
+	printf("All map cases passed!\n");
 }
 
 int main(int argc, char** argv) {
