@@ -4,18 +4,15 @@
 #include <iostream>
 
 #include "gg.h"
-#include "galois/cuda/HostDecls.h"
 #include "galois/cuda/DynamicBitset.h"
 #include "mrbc_map_cuda.cuh"
 
 #define DEVICE_ID 0
 
 __global__
-void testMap() {
-	uint32_t NUM_SRC = 10;
-	CUDAMap* map = new CUDAMap(NUM_SRC);
-
+void testMap(CUDAMap* map) {
 	uint32_t KEY = 3;
+
 	if (map->get(KEY) != nullptr) {
 		printf("ERROR: should not contain key yet \n");
 		return;
@@ -68,8 +65,12 @@ int main(int argc, char** argv) {
   }
   printf("Device: %s\n", devProp.name);
 
+
+  uint32_t NUM_SRC = 10;
+  CUDAMap* map = new CUDAMap(NUM_SRC);
+
   // Call kernel that will use map
-  testMap<<<1, 1>>>();
+  testMap<<<1, 1>>>(map);
 
   return 0;
 }
