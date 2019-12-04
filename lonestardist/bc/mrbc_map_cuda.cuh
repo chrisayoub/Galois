@@ -57,8 +57,8 @@ private:
 	// Return the hash of a key
 	// Will need to mod the result by whatever array length
 	__device__
-	unsigned hash(uint32_t key) {
-		// TODO make better hash function
+	uint32_t hash(uint32_t key) {
+		// TODO make better hash function, maybe?
 		return key;
 	}
 
@@ -138,6 +138,7 @@ public:
 			map[index].key = key;
 			map[index].value = new BitSet(numSources);
 			map[index].used = 1;
+			size++;
 		}
 		return map[index].value;
 	}
