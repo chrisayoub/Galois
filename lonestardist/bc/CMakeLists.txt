@@ -1,4 +1,4 @@
-cuda_add_executable(test_slab_hash test_slab_hash.cu
+cuda_add_executable(test_mrbc_map test_mrbc_map.cu
     OPTIONS ${GENCODE} ${CUDA_VERBOSE_PTXAS})
 
 distApp(bc_level)
