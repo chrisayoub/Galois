@@ -19,7 +19,7 @@ void testMap(CUDAMap* map) {
 		return;
 	}
 
-  printf("2: Hello from block %d, thread %d\n", blockIdx.x, threadIdx.x);
+	printf("2: Hello from block %d, thread %d\n", blockIdx.x, threadIdx.x);
 	BitSet* b = map->get(3);
 	if (map->get(KEY) == nullptr) {
 		printf("ERROR: should contain key \n");
@@ -72,12 +72,14 @@ int main(int argc, char** argv) {
   }
   printf("Device: %s\n", devProp.name);
 
-
   uint32_t NUM_SRC = 10;
   CUDAMap* map = new CUDAMap(NUM_SRC);
+  printf("Created new CUDAMap!\n");
 
   // Call kernel that will use map
   testMap<<<1, 1>>>(map);
+
+  cudaDeviceSynchronize();
 
   return 0;
 }
