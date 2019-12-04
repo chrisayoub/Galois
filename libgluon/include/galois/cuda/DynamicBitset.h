@@ -84,7 +84,7 @@ public:
   }
 
   __device__ __host__ void reset() {
-    memset(bit_vector, 0, vec_size() * sizeof(uint64_t));
+    cudaMemset(bit_vector, 0, vec_size() * sizeof(uint64_t));
   }
 
   // assumes bit_vector is not updated (set) in parallel

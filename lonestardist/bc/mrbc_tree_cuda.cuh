@@ -1,73 +1,40 @@
 #ifndef _CUDATREE_
 #define _CUDATREE_
 
-#include "slab_hash.cuh"
 #include <cuda.h>
 #include "gg.h"
 #include "galois/cuda/HostDecls.h"
 #include "mrbc_bitset_cuda.cuh"
+#include "mrbc_map_cuda.cuh"
 
 const uint32_t infinity = std::numeric_limits<uint32_t>::max() >> 2;
 const uint32_t num_buckets = 10;
 size_t g_gpu_device_idx{0};  // the gpu device to run tests on
 
 using BitSet = CUDABitSet;
-class CUDATree : public GpuSlabHash<uint32_t, BitSet*, SlabHashTypeT::ConcurrentMap> {
+class CUDATree {
   __device__
-  BitSet * get(uint32_t myDistance, uint32_t tid) {
-    BitSet *myBitSet = search(myDistance);
-    // if not exist, create and insert an empty bitset
-    if (reinterpret_cast<uint64_t>(myBitSet) == SEARCH_NOT_FOUND) {
-      myBitSet = new BitSet(numSources);
-      insert(myDistance, myBitSet, tid);
-    }
-    return myBitSet;
+  BitSet* get(uint32_t myDistance) {
+	  return map->get(myDistance);
   }
 
   __device__
-  BitSet * search(uint32_t myDistance) {
-    bool toSearch = true;
-    uint32_t laneId = threadIdx.x & 0x1F;
-    BitSet *myBitSet = reinterpret_cast<BitSet *>(SEARCH_NOT_FOUND);
-    uint32_t myBucket = gpu_context_.computeBucket(myDistance);
-    gpu_context_.searchKey(toSearch, laneId, myDistance, myBitSet, myBucket);
-    return myBitSet;
-  }
-
-  __device__
-  void insert(uint32_t myDistance, BitSet* myBitSet, uint32_t tid) {
-    bool toInsert = true;
-    uint32_t laneId = threadIdx.x & 0x1F;
-    uint32_t myBucket = gpu_context_.computeBucket(myDistance);
-    AllocatorContextT local_allocator_ctx(gpu_context_.getAllocatorContext());
-    local_allocator_ctx.initAllocator(tid, laneId);
-    gpu_context_.insertPair(toInsert, laneId, myDistance, myBitSet, myBucket, local_allocator_ctx);
+  BitSet* search(uint32_t myDistance) {
+	  return map->search(myDistance);
   }
 
   __device__
   bool notExistOrEmpty(uint32_t myDistance) {
-    BitSet *myBitSet = search(myDistance);
-    // since we iterate distances by value not iterator,
-    // some distances may not exist in the hash map
-    if (reinterpret_cast<uint64_t>(myBitSet) == SEARCH_NOT_FOUND) {
-      return true;
-    }
-    return myBitSet->none();
+	  return map->notExistOrEmpty(myDistance);
   }
 
   __device__
   void clear() {
-    uint32_t laneId = threadIdx.x & 0x1F;
-    for (int i = maxDistance; i >= 0; i--) {
-      BitSet *myBitSet = search(i);
-      if (reinterpret_cast<uint64_t>(myBitSet) != SEARCH_NOT_FOUND) {
-        bool toDelete = true;
-        uint32_t myBucket = gpu_context_.computeBucket(i);
-        gpu_context_.deleteKey(toDelete, laneId, i, myBucket);
-        delete myBitSet;
-      }
-    }
+	  map->clear();
   }
+
+  // internal map used for hashing/storage
+  CUDAMap* map;
 
   //! number of sources that have already been sent out
   uint32_t numSentSources;
@@ -83,10 +50,10 @@ class CUDATree : public GpuSlabHash<uint32_t, BitSet*, SlabHashTypeT::Concurrent
   uint32_t numSources;
 
 public:
-  CUDATree(uint32_t numSourcesPerRound) // where is CUDATree instantiated?
-          : GpuSlabHash<uint32_t, BitSet*, SlabHashTypeT::ConcurrentMap>(
-          num_buckets, new DynamicAllocatorT(), g_gpu_device_idx),
-          numSources(numSourcesPerRound) {}
+  CUDATree(uint32_t numSourcesPerRound) {
+	  numSources = numSourcesPerRound;
+	  map = new CUDAMap(numSources);
+  }
   //! map to a bitset of nodes that belong in a particular distance group
 
 	__device__ // __forceinline__?
@@ -109,7 +76,7 @@ public:
     // assert(newDistance == 0);
     // assert(distanceTree[newDistance].size() == numSourcesPerRound);
 
-    get(newDistance, tid)->set_indicator(index);
+    get(newDistance)->set_indicator(index);
     // maxDistance = maxDistance > newDistance ? maxDistance : newDistance;
 
     numNonInfinity++;
@@ -121,7 +88,7 @@ public:
     uint32_t indexToSend = infinity;
 
     BitSet *setToCheck = search(distanceToCheck);
-    if (reinterpret_cast<uint64_t>(setToCheck) != SEARCH_NOT_FOUND) {
+    if (setToCheck != nullptr) {
       auto index = setToCheck->getIndicator();
       if (index != setToCheck->npos) {
         indexToSend = index;
@@ -146,7 +113,7 @@ public:
 	__device__
 	void markSent(uint32_t roundNumber, uint32_t tid) {
     uint32_t distanceToCheck = roundNumber - numSentSources;
-    get(distanceToCheck, tid)->forward_indicator();
+    get(distanceToCheck)->forward_indicator();
     numSentSources++;
 	}
 
@@ -161,7 +128,7 @@ public:
     BitSet *setToChange = search(oldDistance);
     bool existed = false;
     // if it exists, remove it // shouldn't it always exist?
-    if (reinterpret_cast<uint64_t>(setToChange) != SEARCH_NOT_FOUND) {
+    if (setToChange != nullptr) {
       existed = setToChange->test_set_indicator(index, false); // Test, set, update
     }
 
@@ -171,7 +138,7 @@ public:
     }
 
     // asset(distanceTree[newDistance].size() == numSourcesPerRound);
-    get(newDistance, tid)->set_indicator(index);
+    get(newDistance)->set_indicator(index);
 	}
 
 	__device__
