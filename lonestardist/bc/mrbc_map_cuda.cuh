@@ -26,10 +26,11 @@ class CUDAMap {
 	uint32_t numSources;
 
 private:
-	// Resize exponentially
 
 	// TODO do we need to increase heap limit??
-// https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#dynamic-global-memory-allocation-and-operations
+	// https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#dynamic-global-memory-allocation-and-operations
+
+	// Resize exponentially
 	__device__
 	void resize() {
 		const double LOAD_FACTOR = 0.7;

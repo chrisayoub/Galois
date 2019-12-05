@@ -8,8 +8,6 @@
 #include "mrbc_map_cuda.cuh"
 
 const uint32_t infinity = std::numeric_limits<uint32_t>::max() >> 2;
-const uint32_t num_buckets = 10;
-size_t g_gpu_device_idx{0};  // the gpu device to run tests on
 
 using BitSet = CUDABitSet;
 class CUDATree {
@@ -69,13 +67,7 @@ public:
 
 	__device__
 	void setDistance(uint32_t index, uint32_t newDistance, uint32_t tid) {
-		// Only for iterstion initialization
-		// assert(newDistance == 0);
-		// assert(distanceTree[newDistance].size() == numSourcesPerRound);
-
 		get(newDistance)->set_indicator(index);
-		// maxDistance = maxDistance > newDistance ? maxDistance : newDistance;
-
 		numNonInfinity++;
 	}
 
@@ -92,15 +84,6 @@ public:
 			}
 		}
 
-		//    CPU code:
-		//    auto setIter = distanceTree.find(distanceToCheck);
-		//    if (setIter != distanceTree.end()) {
-		//      BitSet& setToCheck = setIter->second;
-		//      auto index = setToCheck.getIndicator();
-		//      if (index != setToCheck.npos) {
-		//        indexToSend = index;
-		//      }
-		//    }
 		return indexToSend;
 	}
 
@@ -117,9 +100,6 @@ public:
 	__device__
 	void setDistance(uint32_t index, uint32_t oldDistance, uint32_t newDistance, uint32_t tid) {
 		// taken care of by callee, oldDistance always > newDistance
-		//    if (oldDistance == newDistance) {
-		//      return;
-		//    }
 		maxDistance = maxDistance > newDistance ? maxDistance : newDistance;
 
 		BitSet *setToChange = search(oldDistance);
@@ -134,7 +114,6 @@ public:
 			numNonInfinity++;
 		}
 
-		// asset(distanceTree[newDistance].size() == numSourcesPerRound);
 		get(newDistance)->set_indicator(index);
 	}
 
