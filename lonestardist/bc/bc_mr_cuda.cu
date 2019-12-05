@@ -356,9 +356,11 @@ void FinishMemoryInit_cuda(struct CUDA_Context* ctx, unsigned vectorSize) {
 	// Ensure we have enough heap space for malloc in device code
 	// For each node, we have a CUDAMap (stored in dTree)
 	// For each CUDAMap, we have up to (2 * sizeof(MapPair) + 1) * N entries.
-	unsigned N = ctx->gg.nnodes;
-	size_t heapSpace = 3 * sizeof(MapPair) * N * N;
-	cudaDeviceSetLimit(cudaLimitMallocHeapSize, heapSpace);
+
+	// TODO re-enable this with a tweaked value if issues come up
+//	unsigned N = ctx->gg.nnodes;
+//	size_t heapSpace = 3 * sizeof(MapPair) * N * N;
+//	cudaDeviceSetLimit(cudaLimitMallocHeapSize, heapSpace);
 
 	// Finish op
 	cudaDeviceSynchronize();
