@@ -45,7 +45,7 @@ void testMap() {
 
   printf("5: Hello from block %d, thread %d\n", blockIdx.x, threadIdx.x);
 	map->clear();
-	if (map->get(KEY) != nullptr) {
+	if (map->search(KEY) != nullptr) {
 		printf("ERROR: should not contain key after clear \n");
 		return;
 	}
@@ -57,7 +57,7 @@ void testMap() {
 	}
 
   printf("7: Hello from block %d, thread %d\n", blockIdx.x, threadIdx.x);
-	if (map->get(KEY + 5) == nullptr) {
+	if (map->search(KEY + 5) == nullptr) {
 		printf("ERROR: should contain key \n");
 		return;
 	}
@@ -75,6 +75,10 @@ int main(int argc, char** argv) {
     cudaGetDeviceProperties(&devProp, DEVICE_ID);
   }
   printf("Device: %s\n", devProp.name);
+
+  // Give enough memory
+  size_t heapSpace = 5 * 100000000;
+  cudaDeviceSetLimit(cudaLimitMallocHeapSize, heapSpace);
 
   // Call kernel that will use map
   testMap<<<1, 1>>>();

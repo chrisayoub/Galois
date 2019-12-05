@@ -47,7 +47,7 @@ private:
 		// Re-hash and place elements in new storage
 		for (unsigned i = 0; i < length; i++) {
 			MapPair kv = map[i];
-			if (kv.used != 0) {
+			if (kv.used) {
 				insert(kv.key, kv.value, newStorage, newLength);
 			}
 		}
@@ -55,6 +55,7 @@ private:
 		// Free old memory, update pointer
 		free(map);
 		map = newStorage;
+		length = newLength;
 	}
 
 	// Return the hash of a key
@@ -136,6 +137,7 @@ public:
 	// Look for existing bitset. If not found, create new one and return it
 	__device__
 	BitSet* get(uint32_t key) {
+		resize();
 		unsigned index = findSpot(key, map, length);
 		if (map[index].used == 0) {
 			// Need to create new bitset and place

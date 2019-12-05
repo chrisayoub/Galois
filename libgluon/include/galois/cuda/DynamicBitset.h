@@ -58,7 +58,6 @@ public:
   }
 
   __device__ __host__ void alloc(size_t nbits) {
-    assert(num_bits == 0);
     assert(sizeof(unsigned long long int) * 8 == 64);
     assert(sizeof(uint64_t) * 8 == 64);
     num_bits_capacity = nbits;
