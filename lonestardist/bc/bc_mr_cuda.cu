@@ -51,7 +51,7 @@ void InitializeIteration(
 			  p_minDistances[idx] = 0;
 			  p_shortPathCounts[idx] = 1;
 			  p_dependencyValues[idx] = 0.0;
-			  dTree.setDistance(i, 0, tid); // pass tid to dTree
+			  dTree.setDistance(i, 0);
 		  } else {
 			  // This is a non-source node
 			  p_minDistances[idx] = infinity;
@@ -115,7 +115,7 @@ void ConfirmMessageToSend(
 	  {
 		  CUDATree& dTree = p_dTree[src];
 		  if (p_roundIndexToSend[src] != infinity) {
-			  dTree.markSent(roundNumber, tid);
+			  dTree.markSent(roundNumber);
 		  }
 	  }
 }
@@ -157,7 +157,7 @@ void SendAPSPMessages(
 
 				if (oldValue > newValue) {
 					p_minDistances[destIndex] = newValue;
-					p_dTree[dest].setDistance(indexToSend, oldValue, newValue, tid);
+					p_dTree[dest].setDistance(indexToSend, oldValue, newValue);
 					// overwrite short path with this node's shortest path
 					p_shortPathCounts[destIndex] = p_shortPathCounts[srcIndex];
 				} else if (oldValue == newValue) {
@@ -339,23 +339,33 @@ uint64_t* copyVectorToDevice(const std::vector<uint64_t>& vec) {
 // ** Kernel wrappers (host code)
 // ********************************
 
-void InitializeGraph_allNodes_cuda(struct CUDA_Context* ctx, unsigned vectorSize)
+void FinishMemoryInit_cuda(struct CUDA_Context* ctx, unsigned vectorSize) {
+	// Init the fields
+	ctx->vectorSize = vectorSize;
+
+	// Custom so we can make flat-map arrays
+	unsigned num_hosts = ctx->num_hosts;
+	load_array_field_CUDA(ctx, &ctx->minDistances, num_hosts);
+	load_array_field_CUDA(ctx, &ctx->shortPathCounts, num_hosts);
+	load_array_field_CUDA(ctx, &ctx->dependencyValues, num_hosts);
+
+	// Copy vectorSize to device for utility
+	InitializeGraph<<<1, 1>>>(vectorSize);
+
+	// Ensure we have enough heap space for malloc in device code
+	// For each node, we have a CUDAMap (stored in dTree)
+	// For each CUDAMap, we have up to (2 * sizeof(MapPair) + 1) * N entries.
+	unsigned N = ctx->gg.nnodes;
+	size_t heapSpace = 3 * sizeof(MapPair) * N * N;
+	cudaDeviceSetLimit(cudaLimitMallocHeapSize, heapSpace);
+
+	// Finish op
+	cudaDeviceSynchronize();
+	check_cuda_kernel;
+}
+
+void InitializeGraph_allNodes_cuda(struct CUDA_Context* ctx)
 {
-	// Only need to do these once initially
-	if (!ctx->minDistances.data.size()) {
-		// Init the fields
-		ctx->vectorSize = vectorSize;
-
-		// Custom so we can make flat-map arrays
-		unsigned num_hosts = ctx->num_hosts;
-		load_array_field_CUDA(ctx, &ctx->minDistances, num_hosts);
-		load_array_field_CUDA(ctx, &ctx->shortPathCounts, num_hosts);
-		load_array_field_CUDA(ctx, &ctx->dependencyValues, num_hosts);
-
-		// Copy vectorSize to device for utility
-		InitializeGraph<<<1, 1>>>(vectorSize);
-	}
-
 	// Init memory
 	reset_CUDA_context(ctx);
 

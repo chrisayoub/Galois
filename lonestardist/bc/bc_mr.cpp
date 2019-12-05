@@ -124,8 +124,7 @@ void InitializeGraph(Graph& graph) {
 
 #ifdef __GALOIS_HET_CUDA__
 	if (personality == GPU_CUDA) {
-		unsigned vecSize = vectorSize;
-		InitializeGraph_allNodes_cuda(cuda_ctx, vecSize);
+		InitializeGraph_allNodes_cuda(cuda_ctx);
 	} else if (personality == CPU)
 #endif
 	galois::do_all(
@@ -624,6 +623,12 @@ int main(int argc, char** argv) {
 
   // Backup the number of sources per round
   uint64_t origNumRoundSources = numSourcesPerRound;
+
+  // Can only do this once vectorSize is established
+#ifdef __GALOIS_HET_CUDA__
+	unsigned vecSize = vectorSize;
+	FinishMemoryInit_cuda(cuda_ctx, vecSize);
+#endif
 
   // Start graph initialization
   galois::StatTimer StatTimer_graph_init("TIMER_GRAPH_INIT", REGION_NAME);

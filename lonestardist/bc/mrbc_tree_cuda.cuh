@@ -66,7 +66,7 @@ public:
 	}
 
 	__device__
-	void setDistance(uint32_t index, uint32_t newDistance, uint32_t tid) {
+	void setDistance(uint32_t index, uint32_t newDistance) {
 		get(newDistance)->set_indicator(index);
 		numNonInfinity++;
 	}
@@ -91,14 +91,14 @@ public:
 	bool moreWork() { return numNonInfinity > numSentSources; }
 
 	__device__
-	void markSent(uint32_t roundNumber, uint32_t tid) {
+	void markSent(uint32_t roundNumber) {
 		uint32_t distanceToCheck = roundNumber - numSentSources;
 		get(distanceToCheck)->forward_indicator();
 		numSentSources++;
 	}
 
 	__device__
-	void setDistance(uint32_t index, uint32_t oldDistance, uint32_t newDistance, uint32_t tid) {
+	void setDistance(uint32_t index, uint32_t oldDistance, uint32_t newDistance) {
 		// taken care of by callee, oldDistance always > newDistance
 		maxDistance = maxDistance > newDistance ? maxDistance : newDistance;
 
