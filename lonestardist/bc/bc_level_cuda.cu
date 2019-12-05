@@ -260,10 +260,6 @@ __global__ void Sanity(CSRGraph graph, unsigned int __begin, unsigned int __end,
   DGAccumulator_min.thread_exit<cub::BlockReduce<float, TB_SIZE> >(DGAccumulator_min_ts);
   // FP: "18 -> 19;
 }
-
-// MARK: Anything above here gets used
-
-// MARK: This gets used
 void InitializeGraph_cuda(unsigned int  __begin, unsigned int  __end, struct CUDA_Context*  ctx)
 {
   dim3 blocks;
@@ -279,15 +275,12 @@ void InitializeGraph_cuda(unsigned int  __begin, unsigned int  __end, struct CUD
   check_cuda_kernel;
   // FP: "6 -> 7;
 }
-
-// MARK: This gets used
 void InitializeGraph_allNodes_cuda(struct CUDA_Context*  ctx)
 {
   // FP: "1 -> 2;
   InitializeGraph_cuda(0, ctx->gg.nnodes, ctx);
   // FP: "2 -> 3;
 }
-
 void InitializeGraph_masterNodes_cuda(struct CUDA_Context*  ctx)
 {
   // FP: "1 -> 2;
@@ -333,8 +326,6 @@ void InitializeIteration_nodesWithEdges_cuda(const uint32_t & local_infinity, co
   InitializeIteration_cuda(0, ctx->numNodesWithEdges, local_infinity, local_current_src_node, ctx);
   // FP: "2 -> 3;
 }
-
-// MARK: This gets used
 void ForwardPass_cuda(unsigned int  __begin, unsigned int  __end, uint32_t & dga, uint32_t local_r, struct CUDA_Context*  ctx)
 {
   dim3 blocks;
@@ -360,7 +351,6 @@ void ForwardPass_cuda(unsigned int  __begin, unsigned int  __end, uint32_t & dga
   dga = *(dgaval.cpu_rd_ptr());
   // FP: "11 -> 12;
 }
-
 void ForwardPass_allNodes_cuda(uint32_t & dga, uint32_t local_r, struct CUDA_Context*  ctx)
 {
   // FP: "1 -> 2;
@@ -373,16 +363,12 @@ void ForwardPass_masterNodes_cuda(uint32_t & dga, uint32_t local_r, struct CUDA_
   ForwardPass_cuda(ctx->beginMaster, ctx->beginMaster + ctx->numOwned, dga, local_r, ctx);
   // FP: "2 -> 3;
 }
-
-// MARK: This gets used
 void ForwardPass_nodesWithEdges_cuda(uint32_t & dga, uint32_t local_r, struct CUDA_Context*  ctx)
 {
   // FP: "1 -> 2;
   ForwardPass_cuda(0, ctx->numNodesWithEdges, dga, local_r, ctx);
   // FP: "2 -> 3;
 }
-
-// MARK: This gets used
 void MiddleSync_cuda(unsigned int  __begin, unsigned int  __end, const uint32_t local_infinity, struct CUDA_Context*  ctx)
 {
   dim3 blocks;
@@ -398,30 +384,24 @@ void MiddleSync_cuda(unsigned int  __begin, unsigned int  __end, const uint32_t 
   check_cuda_kernel;
   // FP: "6 -> 7;
 }
-
 void MiddleSync_allNodes_cuda(const uint32_t local_infinity, struct CUDA_Context*  ctx)
 {
   // FP: "1 -> 2;
   MiddleSync_cuda(0, ctx->gg.nnodes, local_infinity, ctx);
   // FP: "2 -> 3;
 }
-
-// MARK: This gets used
 void MiddleSync_masterNodes_cuda(const uint32_t local_infinity, struct CUDA_Context*  ctx)
 {
   // FP: "1 -> 2;
   MiddleSync_cuda(ctx->beginMaster, ctx->beginMaster + ctx->numOwned, local_infinity, ctx);
   // FP: "2 -> 3;
 }
-
 void MiddleSync_nodesWithEdges_cuda(const uint32_t local_infinity, struct CUDA_Context*  ctx)
 {
   // FP: "1 -> 2;
   MiddleSync_cuda(0, ctx->numNodesWithEdges, local_infinity, ctx);
   // FP: "2 -> 3;
 }
-
-// MARK: This gets used
 void BackwardPass_cuda(unsigned int  __begin, unsigned int  __end, uint32_t local_r, struct CUDA_Context*  ctx)
 {
   dim3 blocks;
@@ -437,7 +417,6 @@ void BackwardPass_cuda(unsigned int  __begin, unsigned int  __end, uint32_t loca
   check_cuda_kernel;
   // FP: "6 -> 7;
 }
-
 void BackwardPass_allNodes_cuda(uint32_t local_r, struct CUDA_Context*  ctx)
 {
   // FP: "1 -> 2;
@@ -450,16 +429,12 @@ void BackwardPass_masterNodes_cuda(uint32_t local_r, struct CUDA_Context*  ctx)
   BackwardPass_cuda(ctx->beginMaster, ctx->beginMaster + ctx->numOwned, local_r, ctx);
   // FP: "2 -> 3;
 }
-
-// MARK: This gets used
 void BackwardPass_nodesWithEdges_cuda(uint32_t local_r, struct CUDA_Context*  ctx)
 {
   // FP: "1 -> 2;
   BackwardPass_cuda(0, ctx->numNodesWithEdges, local_r, ctx);
   // FP: "2 -> 3;
 }
-
-// MARK: This gets used
 void BC_cuda(unsigned int  __begin, unsigned int  __end, struct CUDA_Context*  ctx)
 {
   dim3 blocks;
@@ -475,30 +450,24 @@ void BC_cuda(unsigned int  __begin, unsigned int  __end, struct CUDA_Context*  c
   check_cuda_kernel;
   // FP: "6 -> 7;
 }
-
 void BC_allNodes_cuda(struct CUDA_Context*  ctx)
 {
   // FP: "1 -> 2;
   BC_cuda(0, ctx->gg.nnodes, ctx);
   // FP: "2 -> 3;
 }
-
-// MARK: This gets used
 void BC_masterNodes_cuda(struct CUDA_Context*  ctx)
 {
   // FP: "1 -> 2;
   BC_cuda(ctx->beginMaster, ctx->beginMaster + ctx->numOwned, ctx);
   // FP: "2 -> 3;
 }
-
 void BC_nodesWithEdges_cuda(struct CUDA_Context*  ctx)
 {
   // FP: "1 -> 2;
   BC_cuda(0, ctx->numNodesWithEdges, ctx);
   // FP: "2 -> 3;
 }
-
-// MARK: This gets used
 void Sanity_cuda(unsigned int  __begin, unsigned int  __end, float & DGAccumulator_sum, float & DGAccumulator_max, float & DGAccumulator_min, struct CUDA_Context*  ctx)
 {
   dim3 blocks;
@@ -544,22 +513,18 @@ void Sanity_cuda(unsigned int  __begin, unsigned int  __end, float & DGAccumulat
   DGAccumulator_min = *(DGAccumulator_minval.cpu_rd_ptr());
   // FP: "21 -> 22;
 }
-
 void Sanity_allNodes_cuda(float & DGAccumulator_sum, float & DGAccumulator_max, float & DGAccumulator_min, struct CUDA_Context*  ctx)
 {
   // FP: "1 -> 2;
   Sanity_cuda(0, ctx->gg.nnodes, DGAccumulator_sum, DGAccumulator_max, DGAccumulator_min, ctx);
   // FP: "2 -> 3;
 }
-
-// MARK: This gets used
 void Sanity_masterNodes_cuda(float & DGAccumulator_sum, float & DGAccumulator_max, float & DGAccumulator_min, struct CUDA_Context*  ctx)
 {
   // FP: "1 -> 2;
   Sanity_cuda(ctx->beginMaster, ctx->beginMaster + ctx->numOwned, DGAccumulator_sum, DGAccumulator_max, DGAccumulator_min, ctx);
   // FP: "2 -> 3;
 }
-
 void Sanity_nodesWithEdges_cuda(float & DGAccumulator_sum, float & DGAccumulator_max, float & DGAccumulator_min, struct CUDA_Context*  ctx)
 {
   // FP: "1 -> 2;
