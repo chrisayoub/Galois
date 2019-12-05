@@ -364,6 +364,7 @@ void InitializeGraph_allNodes_cuda(struct CUDA_Context* ctx, unsigned vectorSize
 	}
 	// Copy allocations from CPU to GPU
 	ctx->dTree.data.copy(0, 1);
+	ctx->dTree.data.free_device();
 
 	// Finish op
 	cudaDeviceSynchronize();
