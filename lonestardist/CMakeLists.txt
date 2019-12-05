@@ -47,7 +47,7 @@ function(distApp name)
     target_link_libraries(${name} ${name}_cuda)
 
     FILE(GLOB CUSOURCES ${name}*.cu)
-    cuda_add_library(${name}_cuda ${CUSOURCES} OPTIONS -g -G)
+    cuda_add_library(${name}_cuda ${CUSOURCES})
     target_link_libraries(${name}_cuda galois_gpu)
   endif()
 endfunction()
