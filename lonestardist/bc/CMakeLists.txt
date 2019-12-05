@@ -1,5 +1,5 @@
 cuda_add_executable(test_mrbc_map test_mrbc_map.cu
-    OPTIONS ${GENCODE} ${CUDA_VERBOSE_PTXAS})
+    OPTIONS -g -G ${GENCODE} ${CUDA_VERBOSE_PTXAS})
 target_link_libraries(test_mrbc_map galois_gpu)
 
 distApp(bc_level)

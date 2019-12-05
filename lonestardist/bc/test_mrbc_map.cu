@@ -10,18 +10,22 @@
 #define DEVICE_ID 0
 
 __global__
-void testMap(CUDAMap* map) {
+void testMap() {
+	uint32_t NUM_SRC = 10;
+	CUDAMap* map = new CUDAMap(NUM_SRC);
+	printf("Created new CUDAMap!\n");
+
 	uint32_t KEY = 3;
 
 	printf("1: Hello from block %d, thread %d\n", blockIdx.x, threadIdx.x);
-	if (map->get(KEY) != nullptr) {
+	if (map->search(KEY) != nullptr) {
 		printf("ERROR: should not contain key yet \n");
 		return;
 	}
 
 	printf("2: Hello from block %d, thread %d\n", blockIdx.x, threadIdx.x);
 	BitSet* b = map->get(3);
-	if (map->get(KEY) == nullptr) {
+	if (map->search(KEY) == nullptr) {
 		printf("ERROR: should contain key \n");
 		return;
 	}
@@ -72,12 +76,8 @@ int main(int argc, char** argv) {
   }
   printf("Device: %s\n", devProp.name);
 
-  uint32_t NUM_SRC = 10;
-  CUDAMap* map = new CUDAMap(NUM_SRC);
-  printf("Created new CUDAMap!\n");
-
   // Call kernel that will use map
-  testMap<<<1, 1>>>(map);
+  testMap<<<1, 1>>>();
 
   cudaDeviceSynchronize();
 

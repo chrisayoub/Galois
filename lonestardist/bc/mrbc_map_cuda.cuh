@@ -2,7 +2,7 @@
 #include "gg.h"
 #include "galois/cuda/HostDecls.h"
 #include "mrbc_bitset_cuda.cuh"
-
+#include <new>
 
 using BitSet = CUDABitSet;
 
@@ -96,6 +96,7 @@ private:
 	}
 
 public:
+	__device__
 	CUDAMap(uint32_t sources) {
 		// Set number of init elements
 		size = 0;
@@ -103,8 +104,10 @@ public:
 		// Allocate init memory
 		const unsigned INIT_CAP = 20;
 		size_t numBytes = INIT_CAP * sizeof(MapPair);
-		cudaMalloc(&map, numBytes);
-		cudaMemset(map, 0, numBytes);
+		map = (MapPair*) malloc(numBytes);
+		memset(map, 0, numBytes);
+
+		// Length of array
 		length = INIT_CAP;
 
 		// Init param for bitsets
@@ -137,7 +140,7 @@ public:
 		if (map[index].used == 0) {
 			// Need to create new bitset and place
 			map[index].key = key;
-			map[index].value = new BitSet(numSources);
+			map[index].value = new CUDABitSet(numSources);
 			map[index].used = 1;
 			size++;
 		}

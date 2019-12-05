@@ -63,7 +63,11 @@ public:
     assert(sizeof(uint64_t) * 8 == 64);
     num_bits_capacity = nbits;
     num_bits          = nbits;
-    cudaMalloc(&bit_vector, vec_size() * sizeof(uint64_t));
+#ifdef __CUDA_ARCH__
+    bit_vector = (uint64_t*) malloc(vec_size() * sizeof(uint64_t));
+#else
+    CUDA_SAFE_CALL(cudaMalloc(&bit_vector, vec_size() * sizeof(uint64_t)));
+#endif
     reset();
   }
 
@@ -84,7 +88,11 @@ public:
   }
 
   __device__ __host__ void reset() {
-    cudaMemset(bit_vector, 0, vec_size() * sizeof(uint64_t));
+#ifdef __CUDA_ARCH__
+    memset(bit_vector, 0, vec_size() * sizeof(uint64_t));
+#else
+    CUDA_SAFE_CALL(cudaMemset(bit_vector, 0, vec_size() * sizeof(uint64_t)));
+#endif
   }
 
   // assumes bit_vector is not updated (set) in parallel
