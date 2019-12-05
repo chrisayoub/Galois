@@ -206,16 +206,6 @@ if(ENABLE_DIST_GALOIS)
   endif(USE_LCI)
 
   if(ENABLE_HETERO_GALOIS)
-    set(GENCODE_SM61
-        -gencode=arch=compute_61,code=sm_61 -gencode=arch=compute_61,code=compute_61)
-    option(SLABHASH_GENCODE_SM61 "GENCODE_SM61" ON)
-    if (SLABHASH_GENCODE_SM61)
-      set(GENCODE ${GENCODE} ${GENCODE_SM61})
-    endif(SLABHASH_GENCODE_SM61)
-    include_directories(SlabHash/SlabAlloc/src)
-    include_directories(SlabHash/src)
-    include_directories(SlabHash/src/concurrent)
-
     SET(CUDA_SEPARABLE_COMPILATION ON)
     find_package(CUDA REQUIRED)
     set(CUDA_PROPAGATE_HOST_FLAGS off)
