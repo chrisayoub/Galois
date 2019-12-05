@@ -46,21 +46,13 @@ class CUDATree {
 	// distanceTree.rbegin(), curKey, endKey
 	uint32_t maxDistance, curDistance, endDistance;
 
-	// need to pass from host somewhere!
-	uint32_t* numSources;
-
 public:
-	CUDATree(uint32_t numSourcesPerRound) {
-		cudaMalloc(&numSources, sizeof(uint32_t));
-		cudaMemcpy(numSources, &numSourcesPerRound, sizeof(uint32_t), cudaMemcpyHostToDevice);
-	}
 
 	//! map to a bitset of nodes that belong in a particular distance group
-
-	__device__ // __forceinline__?
-	void initialize() {
-		if (map == nullptr) {
-			map = new CUDAMap(*numSources);
+	__device__
+	void initialize(uint32_t numSources) {
+		if (!map) {
+			map = new CUDAMap(numSources);
 		}
 
 		clear();

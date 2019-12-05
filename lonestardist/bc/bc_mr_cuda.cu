@@ -41,7 +41,7 @@ void InitializeIteration(
   {
 	  p_roundIndexToSend[src] = infinity;
 	  CUDATree& dTree = p_dTree[src]; // CUDATree -> CUDATree& to avoid value copy
-	  dTree.initialize();
+	  dTree.initialize(numSourcesPerRound);
 
 	  // Loop through sources
 	  for (unsigned i = 0; i < numSourcesPerRound; i++) {
@@ -339,32 +339,25 @@ uint64_t* copyVectorToDevice(const std::vector<uint64_t>& vec) {
 // ** Kernel wrappers (host code)
 // ********************************
 
-void InitializeGraph_allNodes_cuda(struct CUDA_Context* ctx, unsigned vectorSize, unsigned numSourcesPerRound)
+void InitializeGraph_allNodes_cuda(struct CUDA_Context* ctx, unsigned vectorSize)
 {
-	// Init the fields
-	ctx->vectorSize = vectorSize;
+	// Only need to do these once initially
+	if (!ctx->minDistances.data.size()) {
+		// Init the fields
+		ctx->vectorSize = vectorSize;
 
-	// Custom so we can make flat-map arrays
-	unsigned num_hosts = ctx->num_hosts;
-	load_array_field_CUDA(ctx, &ctx->minDistances, num_hosts);
-	load_array_field_CUDA(ctx, &ctx->shortPathCounts, num_hosts);
-	load_array_field_CUDA(ctx, &ctx->dependencyValues, num_hosts);
+		// Custom so we can make flat-map arrays
+		unsigned num_hosts = ctx->num_hosts;
+		load_array_field_CUDA(ctx, &ctx->minDistances, num_hosts);
+		load_array_field_CUDA(ctx, &ctx->shortPathCounts, num_hosts);
+		load_array_field_CUDA(ctx, &ctx->dependencyValues, num_hosts);
+
+		// Copy vectorSize to device for utility
+		InitializeGraph<<<1, 1>>>(vectorSize);
+	}
 
 	// Init memory
 	reset_CUDA_context(ctx);
-
-	// Copy vectorSize to device for utility
-	InitializeGraph<<<1, 1>>>(vectorSize);
-
-	// Call constructor for all trees
-	CUDATree* trees = ctx->dTree.data.cpu_wr_ptr();
-	for (unsigned i = 0; i < ctx->gg.nnodes; i++) {
-		CUDATree* dest = &trees[i];
-		CUDATree* tree = new(dest) CUDATree(numSourcesPerRound);
-	}
-	// Copy allocations from CPU to GPU
-	ctx->dTree.data.copy(0, 1);
-	ctx->dTree.data.free_device();
 
 	// Finish op
 	cudaDeviceSynchronize();
