@@ -92,6 +92,15 @@ void load_graph_CUDA(struct CUDA_Context* ctx, MarshalGraph &g, unsigned num_hos
 }
 
 void reset_CUDA_context(struct CUDA_Context* ctx) {
+	// Need to free all mallocs from inside device
+	// Must do this before we reset CUDA context
+	if (ctx->dTree.data.size() != 0) {
+		CUDATree* trees = ctx->dTree.data.gpu_wr_ptr();
+		for (unsigned i = 0; i < ctx->gg.nnodes; i++) {
+			trees[i].dealloc();
+		}
+	}
+
 	ctx->minDistances.data.zero_gpu();
 	ctx->shortPathCounts.data.zero_gpu();
 	ctx->dependencyValues.data.zero_gpu();

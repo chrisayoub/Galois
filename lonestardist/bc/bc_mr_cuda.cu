@@ -18,8 +18,9 @@ unsigned getArrayIndex(unsigned node, unsigned index) {
 // ** Kernels (device code)
 // *************************
 
+// Needed to set device field
 __global__
-void InitializeGraph(unsigned vectorSize) {
+void SetVectorSize(unsigned vectorSize) {
 	flatMapArraySize = vectorSize;
 }
 
@@ -350,7 +351,7 @@ void FinishMemoryInit_cuda(struct CUDA_Context* ctx, unsigned vectorSize) {
 	load_array_field_CUDA(ctx, &ctx->dependencyValues, num_hosts);
 
 	// Copy vectorSize to device for utility
-	InitializeGraph<<<1, 1>>>(vectorSize);
+	SetVectorSize<<<1, 1>>>(vectorSize);
 
 	// Ensure we have enough heap space for malloc in device code
 	// For each node, we have a CUDAMap (stored in dTree)

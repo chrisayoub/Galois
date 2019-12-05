@@ -27,9 +27,6 @@ class CUDAMap {
 
 private:
 
-	// TODO do we need to increase heap limit??
-	// https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#dynamic-global-memory-allocation-and-operations
-
 	// Resize exponentially
 	__device__
 	void resize() {
@@ -114,6 +111,15 @@ public:
 
 		// Init param for bitsets
 		numSources = sources;
+	}
+
+	// Deallocate internal memory
+	// Used between runs
+	__host__
+	void dealloc() {
+		if (map) {
+			cudaFree(map);
+		}
 	}
 
 	// Return nullptr if not present
