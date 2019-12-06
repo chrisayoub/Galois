@@ -115,10 +115,10 @@ public:
 
 	// Deallocate internal memory
 	// Used between runs
-	__host__
+	__device__
 	void dealloc() {
 		if (map) {
-			cudaFree(map);
+			free(map);
 		}
 	}
 

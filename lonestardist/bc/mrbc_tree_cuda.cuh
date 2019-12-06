@@ -47,11 +47,11 @@ class CUDATree {
 public:
 	// Deallocate internal map structure
 	// Used between runs
-	__host__
+	__device__
 	void dealloc() {
 		if (map) {
 			map->dealloc();
-			cudaFree(map);
+			delete map;
 		}
 	}
 

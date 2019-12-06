@@ -43,6 +43,36 @@ struct CUDA_Context : public CUDA_Context_Common {
 	struct CUDA_Context_Field<uint32_t> roundIndexToSend;
 };
 
+
+// Used to free device mallocs
+__global__
+void FreeTrees(
+		unsigned begin, unsigned int end,
+		CUDATree* p_dTree) {
+	  unsigned tid = TID_1D;
+	  unsigned nthreads = TOTAL_THREADS_1D;
+	  for (index_type src = begin + tid; src < end; src += nthreads) {
+		  p_dTree[src].dealloc();
+	  }
+}
+
+void FreeTrees_allNodes(struct CUDA_Context* ctx) {
+	// Sizing
+	dim3 blocks;
+	dim3 threads;
+	kernel_sizing(blocks, threads);
+
+	// Kernel call
+	FreeTrees<<<blocks, threads>>>(0, ctx->gg.nnodes, ctx->dTree.data.gpu_wr_ptr());
+
+	// Clean up
+	cudaDeviceSynchronize();
+	check_cuda_kernel;
+}
+
+
+// CUDA allocations
+
 struct CUDA_Context* get_CUDA_context(int id) {
 	struct CUDA_Context* ctx;
 	ctx = (struct CUDA_Context*) calloc(1, sizeof(struct CUDA_Context));
@@ -95,10 +125,7 @@ void reset_CUDA_context(struct CUDA_Context* ctx) {
 	// Need to free all mallocs from inside device
 	// Must do this before we reset CUDA context
 	if (ctx->dTree.data.size() != 0) {
-		CUDATree* trees = ctx->dTree.data.gpu_wr_ptr();
-		for (unsigned i = 0; i < ctx->gg.nnodes; i++) {
-			trees[i].dealloc();
-		}
+		FreeTrees_allNodes(ctx);
 	}
 
 	ctx->minDistances.data.zero_gpu();
@@ -109,6 +136,7 @@ void reset_CUDA_context(struct CUDA_Context* ctx) {
 	ctx->bc.data.zero_gpu();
 	ctx->roundIndexToSend.data.zero_gpu();
 }
+
 
 float get_node_betweeness_centrality_cuda(struct CUDA_Context* ctx, unsigned LID) {
 	float *betweeness_centrality = ctx->bc.data.cpu_rd_ptr();
