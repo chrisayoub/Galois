@@ -43,34 +43,6 @@ struct CUDA_Context : public CUDA_Context_Common {
 	struct CUDA_Context_Field<uint32_t> roundIndexToSend;
 };
 
-
-// Used to free device mallocs
-__global__
-void FreeTrees(
-		unsigned begin, unsigned int end,
-		CUDATree* p_dTree) {
-	  unsigned tid = TID_1D;
-	  unsigned nthreads = TOTAL_THREADS_1D;
-	  for (index_type src = begin + tid; src < end; src += nthreads) {
-		  p_dTree[src].dealloc();
-	  }
-}
-
-void FreeTrees_allNodes(struct CUDA_Context* ctx) {
-	// Sizing
-	dim3 blocks;
-	dim3 threads;
-	kernel_sizing(blocks, threads);
-
-	// Kernel call
-	FreeTrees<<<blocks, threads>>>(0, ctx->gg.nnodes, ctx->dTree.data.gpu_wr_ptr());
-
-	// Clean up
-	cudaDeviceSynchronize();
-	check_cuda_kernel;
-}
-
-
 // CUDA allocations
 
 struct CUDA_Context* get_CUDA_context(int id) {
@@ -122,11 +94,8 @@ void load_graph_CUDA(struct CUDA_Context* ctx, MarshalGraph &g, unsigned num_hos
 }
 
 void reset_CUDA_context(struct CUDA_Context* ctx) {
-	// Need to free all mallocs from inside device
-	// Must do this before we reset CUDA context
-	if (ctx->dTree.data.size() != 0) {
-		FreeTrees_allNodes(ctx);
-	}
+	// Will not free dTrees in order to save time
+	// All values are re-init when needed anyways
 
 	ctx->minDistances.data.zero_gpu();
 	ctx->shortPathCounts.data.zero_gpu();

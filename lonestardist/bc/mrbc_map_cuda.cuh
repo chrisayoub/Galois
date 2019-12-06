@@ -113,15 +113,6 @@ public:
 		numSources = sources;
 	}
 
-	// Deallocate internal memory
-	// Used between runs
-	__device__
-	void dealloc() {
-		if (map) {
-			free(map);
-		}
-	}
-
 	// Return nullptr if not present
 	__device__
 	BitSet* search(uint32_t key) {

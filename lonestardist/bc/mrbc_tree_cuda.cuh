@@ -45,16 +45,6 @@ class CUDATree {
 	uint32_t maxDistance, curDistance, endDistance;
 
 public:
-	// Deallocate internal map structure
-	// Used between runs
-	__device__
-	void dealloc() {
-		if (map) {
-			map->dealloc();
-			delete map;
-		}
-	}
-
 	//! map to a bitset of nodes that belong in a particular distance group
 	__device__
 	void initialize(uint32_t numSources) {
