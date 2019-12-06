@@ -360,6 +360,9 @@ void FinishMemoryInit_cuda(struct CUDA_Context* ctx, unsigned vectorSize) {
 	size_t heapSpace = 2 * sizeof(MapPair) * N * N;
 	cudaDeviceSetLimit(cudaLimitMallocHeapSize, heapSpace);
 
+	// Clear the dTree storage (only doing this once)
+	ctx->dTree.data.zero_gpu();
+
 	// Finish op
 	cudaDeviceSynchronize();
 	check_cuda_kernel;
