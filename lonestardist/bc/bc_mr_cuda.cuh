@@ -101,7 +101,6 @@ void reset_CUDA_context(struct CUDA_Context* ctx) {
 	ctx->shortPathCounts.data.zero_gpu();
 	ctx->dependencyValues.data.zero_gpu();
 
-	ctx->dTree.data.zero_gpu();
 	ctx->bc.data.zero_gpu();
 	ctx->roundIndexToSend.data.zero_gpu();
 }
