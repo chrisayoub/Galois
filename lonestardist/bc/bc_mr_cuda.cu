@@ -355,12 +355,10 @@ void FinishMemoryInit_cuda(struct CUDA_Context* ctx, unsigned vectorSize) {
 
 	// Ensure we have enough heap space for malloc in device code
 	// For each node, we have a CUDAMap (stored in dTree)
-	// For each CUDAMap, we have up to (2 * sizeof(MapPair) + 1) * N entries.
-
-	// TODO re-enable this with a tweaked value if issues come up
-//	unsigned N = ctx->gg.nnodes;
-//	size_t heapSpace = 3 * sizeof(MapPair) * N * N;
-//	cudaDeviceSetLimit(cudaLimitMallocHeapSize, heapSpace);
+	// For each CUDAMap, we have up to 2 * sizeof(MapPair) * N entries.
+	unsigned N = ctx->gg.nnodes;
+	size_t heapSpace = 2 * sizeof(MapPair) * N * N;
+	cudaDeviceSetLimit(cudaLimitMallocHeapSize, heapSpace);
 
 	// Finish op
 	cudaDeviceSynchronize();
@@ -388,6 +386,8 @@ void InitializeIteration_allNodes_cuda(struct CUDA_Context* ctx,
 	dim3 threads;
 	kernel_sizing(blocks, threads);
 
+	print_cuda_mem_usage();
+
 	// Kernel call
 	InitializeIteration <<<blocks, threads>>>(ctx->gg, 0, ctx->gg.nnodes,
 			ctx->roundIndexToSend.data.gpu_wr_ptr(),
@@ -396,6 +396,8 @@ void InitializeIteration_allNodes_cuda(struct CUDA_Context* ctx,
 			ctx->shortPathCounts.data.gpu_wr_ptr(),
 			ctx->dependencyValues.data.gpu_wr_ptr(),
 			nodesArr, numSourcesPerRound);
+
+	print_cuda_mem_usage();
 
 	// Clean up
 	cudaFree(nodesArr);

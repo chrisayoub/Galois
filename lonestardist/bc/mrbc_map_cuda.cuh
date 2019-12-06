@@ -37,7 +37,7 @@ private:
 		}
 
 		// Allocate new memory
-		unsigned newLength = length * 2 + 1;
+		unsigned newLength = length * 2;
 		size_t numBytes = newLength * sizeof(MapPair);
 		MapPair* newStorage = (MapPair*) malloc(numBytes);
 		memset(newStorage, 0, numBytes);
