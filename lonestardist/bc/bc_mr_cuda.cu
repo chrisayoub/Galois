@@ -333,6 +333,7 @@ uint64_t* copyVectorToDevice(const std::vector<uint64_t>& vec) {
 	size_t arrSize = vec.size() * sizeof(uint64_t);
 	cudaMalloc(&arr, arrSize);
 	cudaMemcpy(arr, vec.data(), arrSize, cudaMemcpyHostToDevice);
+	check_cuda_kernel;
 	return arr;
 }
 
@@ -399,8 +400,6 @@ void InitializeIteration_allNodes_cuda(struct CUDA_Context* ctx,
 			ctx->shortPathCounts.data.gpu_wr_ptr(),
 			ctx->dependencyValues.data.gpu_wr_ptr(),
 			nodesArr, numSourcesPerRound);
-
-	print_cuda_mem_usage();
 
 	// Clean up
 	cudaFree(nodesArr);
