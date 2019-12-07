@@ -42,7 +42,7 @@ void InitializeIteration(
   {
 	  p_roundIndexToSend[src] = infinity;
 	  CUDATree& dTree = p_dTree[src]; // CUDATree -> CUDATree& to avoid value copy
-	  dTree.initialize(numSourcesPerRound);
+	  dTree.initialize();
 
 	  // Loop through sources
 	  for (unsigned i = 0; i < numSourcesPerRound; i++) {
@@ -340,15 +340,13 @@ uint64_t* copyVectorToDevice(const std::vector<uint64_t>& vec) {
 // Need to reduce number of threads so it works
 void size_kernel(dim3& blocks, dim3& threads) {
 	kernel_sizing(blocks, threads);
-	threads.x = 1;
-	blocks.x = 1;
 }
 
 // *******************************
 // ** Kernel wrappers (host code)
 // ********************************
 
-void FinishMemoryInit_cuda(struct CUDA_Context* ctx, unsigned vectorSize) {
+void FinishMemoryInit_cuda(struct CUDA_Context* ctx, unsigned vectorSize, uint32_t numSources) {
 	// Init the fields
 	ctx->vectorSize = vectorSize;
 
@@ -359,17 +357,21 @@ void FinishMemoryInit_cuda(struct CUDA_Context* ctx, unsigned vectorSize) {
 	load_array_field_CUDA(ctx, &ctx->dependencyValues, num_hosts);
 
 	// Copy vectorSize to device for utility
-//	SetVectorSize<<<1, 1>>>(vectorSize);
-
-	// Ensure we have enough heap space for malloc in device code
-	// For each node, we have a CUDAMap (stored in dTree)
-	// For each CUDAMap, we have up to 2 * sizeof(MapPair) * N entries.
-	unsigned N = ctx->gg.nnodes;
-	size_t heapSpace = 2 * sizeof(MapPair) * N * N;
-	cudaDeviceSetLimit(cudaLimitMallocHeapSize, heapSpace);
+	SetVectorSize<<<1, 1>>>(vectorSize);
 
 	// Clear the dTree storage (only doing this once)
 	ctx->dTree.data.zero_gpu();
+
+	// Now, initialize all of the tree's internal data structures
+	for (unsigned i = 0; i < ctx->gg.nnodes; i++) {
+		CUDATree& tree = ctx->dTree.data.gpu_wr_ptr()[i];
+
+		// Allocate a map on the device
+		CUDAMap* deviceMap = CUDAMap::getDeviceMap(numSources);
+
+		// Set pointer on device from tree to map
+		cudaMemcpy(tree.map, deviceMap, sizeof(CUDAMap*), cudaMemcpyHostToDevice);
+	}
 
 	// Finish op
 	cudaDeviceSynchronize();
@@ -396,9 +398,6 @@ void InitializeIteration_allNodes_cuda(struct CUDA_Context* ctx,
 	dim3 blocks;
 	dim3 threads;
 	size_kernel(blocks, threads);
-	printf("Blocks %d %d %d \n", blocks.x, blocks.y, blocks.z);
-	printf("Threads %d %d %d \n", threads.x, threads.y, threads.z);
-
 
 	// Kernel call
 	InitializeIteration <<<blocks, threads>>>(ctx->gg, 0, ctx->gg.nnodes,

@@ -1,7 +1,7 @@
 #include "galois/runtime/DataCommMode.h"
 #include "galois/cuda/HostDecls.h"
 
-void FinishMemoryInit_cuda(struct CUDA_Context* ctx, unsigned vectorSize);
+void FinishMemoryInit_cuda(struct CUDA_Context* ctx, unsigned vectorSize, uint32_t numSources);
 void InitializeGraph_allNodes_cuda(struct CUDA_Context* ctx);
 void InitializeIteration_allNodes_cuda(struct CUDA_Context* ctx, const std::vector<uint64_t>& nodesToConsider,
 		unsigned numSourcesPerRound);

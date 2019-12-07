@@ -16,6 +16,8 @@ using MapPair = struct MapPair;
 
 class CUDAMap {
 
+private:
+
 	// Internal storage, array of MapPair
 	MapPair* map;
 	// Number of elements
@@ -24,8 +26,6 @@ class CUDAMap {
 	unsigned length;
 	// Needed for bitsets
 	uint32_t numSources;
-
-private:
 
 	// Resize exponentially
 	__device__
@@ -36,24 +36,27 @@ private:
 			return;
 		}
 
+		// TODO fix
+		printf("ERROR IMPLEMENT RESIZE!!!!! \n");
+
 		// Allocate new memory
-		unsigned newLength = length * 2;
-		size_t numBytes = newLength * sizeof(MapPair);
-		MapPair* newStorage = (MapPair*) malloc(numBytes);
-		memset(newStorage, 0, numBytes);
-
-		// Re-hash and place elements in new storage
-		for (unsigned i = 0; i < length; i++) {
-			MapPair kv = map[i];
-			if (kv.used) {
-				insert(kv.key, kv.value, newStorage, newLength);
-			}
-		}
-
-		// Free old memory, update pointer
-		free(map);
-		map = newStorage;
-		length = newLength;
+//		unsigned newLength = length * 2;
+//		size_t numBytes = newLength * sizeof(MapPair);
+//		MapPair* newStorage = (MapPair*) malloc(numBytes);
+//		memset(newStorage, 0, numBytes);
+//
+//		// Re-hash and place elements in new storage
+//		for (unsigned i = 0; i < length; i++) {
+//			MapPair kv = map[i];
+//			if (kv.used) {
+//				insert(kv.key, kv.value, newStorage, newLength);
+//			}
+//		}
+//
+//		// Free old memory, update pointer
+//		free(map);
+//		map = newStorage;
+//		length = newLength;
 	}
 
 	// Return the hash of a key
@@ -95,22 +98,32 @@ private:
 	}
 
 public:
-	__device__
-	CUDAMap(uint32_t sources) {
-		// Set number of init elements
-		size = 0;
+	__host__
+	static CUDAMap* getDeviceMap(uint32_t numSources) {
+		unsigned INIT_CAP = 20;
+		unsigned initSize = 0;
 
-		// Allocate init memory
-		const unsigned INIT_CAP = 20;
-		size_t numBytes = INIT_CAP * sizeof(MapPair);
-		map = (MapPair*) malloc(numBytes);
-		memset(map, 0, numBytes);
+		// Allocate a map on the device
+		CUDAMap* deviceMap;
+		cudaMalloc(&deviceMap, sizeof(CUDAMap));
 
-		// Length of array
-		length = INIT_CAP;
+		// Initial values of map
+		// TODO FIX THIS SO IT WILL WORK
+//		cudaMemcpy(deviceMap->length, &INIT_CAP, sizeof(unsigned), cudaMemcpyHostToDevice);
+//		cudaMemcpy(deviceMap->numSources, &numSources, sizeof(uint32_t), cudaMemcpyHostToDevice);
+//		cudaMemcpy(deviceMap->size, &initSize, sizeof(unsigned), cudaMemcpyHostToDevice);
 
-		// Init param for bitsets
-		numSources = sources;
+		// Allocate actual array
+		MapPair* deviceArray;
+		size_t numBytes = sizeof(MapPair) * INIT_CAP;
+		cudaMalloc(&deviceArray, numBytes);
+		cudaMemset(deviceArray, 0, numBytes);
+
+		// Set pointer to array
+		cudaMemcpy(deviceMap->map, deviceArray, sizeof(MapPair*), cudaMemcpyHostToDevice);
+
+		// Return device pointer
+		return deviceMap;
 	}
 
 	// Return nullptr if not present

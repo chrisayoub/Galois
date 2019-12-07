@@ -628,7 +628,7 @@ int main(int argc, char** argv) {
 #ifdef __GALOIS_HET_CUDA__
 	if (personality == GPU_CUDA) {
 		unsigned vecSize = vectorSize;
-		FinishMemoryInit_cuda(cuda_ctx, vecSize);
+		FinishMemoryInit_cuda(cuda_ctx, vecSize, numSourcesPerRound);
 	}
 #endif
 

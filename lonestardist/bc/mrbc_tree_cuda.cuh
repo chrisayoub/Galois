@@ -31,9 +31,6 @@ class CUDATree {
 		map->clear();
 	}
 
-	// internal map used for hashing/storage
-	CUDAMap* map;
-
 	//! number of sources that have already been sent out
 	uint32_t numSentSources;
 	//! number of non-infinity values (i.e. number of sources added already)
@@ -45,13 +42,11 @@ class CUDATree {
 	uint32_t maxDistance, curDistance, endDistance;
 
 public:
-	//! map to a bitset of nodes that belong in a particular distance group
-	__device__
-	void initialize(uint32_t numSources) {
-		if (!map) {
-			map = new CUDAMap(numSources);
-		}
+	// internal map used for hashing/storage
+	CUDAMap* map;
 
+	__device__
+	void initialize() {
 		clear();
 
 		// reset number of sent sources
