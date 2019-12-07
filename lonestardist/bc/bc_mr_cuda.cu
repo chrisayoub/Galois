@@ -340,8 +340,8 @@ uint64_t* copyVectorToDevice(const std::vector<uint64_t>& vec) {
 // Need to reduce number of threads so it works
 void size_kernel(dim3& blocks, dim3& threads) {
 	kernel_sizing(blocks, threads);
-//	threads.x = 1;
-//	blocks.x = 1;
+	threads.x = 1;
+	blocks.x = 1;
 }
 
 // *******************************
