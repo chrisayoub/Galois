@@ -22,6 +22,13 @@ lonestardist/bc/bc_mr \
  -graphTranspose=/net/ohm/export/iss/inputs/unweighted/withRandomWeights/transpose/livejournal.twgr \
   -pset=g -numRoundSources=1
 
-# TEST CMD
-lonestardist/bc/bc_mr /net/ohm/export/iss/inputs/scalefree/rmat10.gr -graphTranspose=/net/ohm/export/iss/inputs/scalefree/transpose/rmat10.tgr -numRoundSources=1024 -numRuns=10 -pset=g
+# GPU cmd local
+lonestardist/bc/bc_mr inputs/small_inputs/scalefree/rmat10.gr -graphTranspose=inputs/small_inputs/scalefree/transpose/rmat10.tgr  -numRoundSources=1024 -runs=10 -pset=g | grep Timer_
+
+# CPU cmd local
+lonestardist/bc/bc_mr inputs/small_inputs/scalefree/rmat10.gr -graphTranspose=inputs/small_inputs/scalefree/transpose/rmat10.tgr  -numRoundSources=1024 -runs=10 -pset=c -t=4 | grep Timer_
+
+# cmake
+cmake ../. -DENABLE_HETERO_GALOIS=1  -DCMAKE_BUILD_TYPE=Debug 
+
 

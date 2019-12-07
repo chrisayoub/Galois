@@ -359,7 +359,7 @@ void FinishMemoryInit_cuda(struct CUDA_Context* ctx, unsigned vectorSize) {
 	load_array_field_CUDA(ctx, &ctx->dependencyValues, num_hosts);
 
 	// Copy vectorSize to device for utility
-	SetVectorSize<<<1, 1>>>(vectorSize);
+//	SetVectorSize<<<1, 1>>>(vectorSize);
 
 	// Ensure we have enough heap space for malloc in device code
 	// For each node, we have a CUDAMap (stored in dTree)
@@ -396,6 +396,9 @@ void InitializeIteration_allNodes_cuda(struct CUDA_Context* ctx,
 	dim3 blocks;
 	dim3 threads;
 	size_kernel(blocks, threads);
+	printf("Blocks %d %d %d \n", blocks.x, blocks.y, blocks.z);
+	printf("Threads %d %d %d \n", threads.x, threads.y, threads.z);
+
 
 	// Kernel call
 	InitializeIteration <<<blocks, threads>>>(ctx->gg, 0, ctx->gg.nnodes,
