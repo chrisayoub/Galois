@@ -626,8 +626,10 @@ int main(int argc, char** argv) {
 
   // Can only do this once vectorSize is established
 #ifdef __GALOIS_HET_CUDA__
-	unsigned vecSize = vectorSize;
-	FinishMemoryInit_cuda(cuda_ctx, vecSize);
+	if (personality == GPU_CUDA) {
+		unsigned vecSize = vectorSize;
+		FinishMemoryInit_cuda(cuda_ctx, vecSize);
+	}
 #endif
 
   // Start graph initialization

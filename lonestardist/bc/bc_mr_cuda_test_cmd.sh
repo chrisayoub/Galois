@@ -22,3 +22,6 @@ lonestardist/bc/bc_mr \
  -graphTranspose=/net/ohm/export/iss/inputs/unweighted/withRandomWeights/transpose/livejournal.twgr \
   -pset=g -numRoundSources=1
 
+# TEST CMD
+lonestardist/bc/bc_mr /net/ohm/export/iss/inputs/scalefree/rmat10.gr -graphTranspose=/net/ohm/export/iss/inputs/scalefree/transpose/rmat10.tgr -numRoundSources=1024 -numRuns=10 -pset=g
+

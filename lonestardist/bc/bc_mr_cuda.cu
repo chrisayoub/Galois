@@ -337,6 +337,13 @@ uint64_t* copyVectorToDevice(const std::vector<uint64_t>& vec) {
 	return arr;
 }
 
+// Need to reduce number of threads so it works
+void size_kernel(dim3& blocks, dim3& threads) {
+	kernel_sizing(blocks, threads);
+//	threads.x = 1;
+//	blocks.x = 1;
+}
+
 // *******************************
 // ** Kernel wrappers (host code)
 // ********************************
@@ -388,9 +395,7 @@ void InitializeIteration_allNodes_cuda(struct CUDA_Context* ctx,
 	// Sizing
 	dim3 blocks;
 	dim3 threads;
-	kernel_sizing(blocks, threads);
-
-	print_cuda_mem_usage();
+	size_kernel(blocks, threads);
 
 	// Kernel call
 	InitializeIteration <<<blocks, threads>>>(ctx->gg, 0, ctx->gg.nnodes,
@@ -411,7 +416,7 @@ void FindMessageToSync_allNodes_cuda(struct CUDA_Context* ctx, const uint32_t ro
 	// Sizing
 	dim3 blocks;
 	dim3 threads;
-	kernel_sizing(blocks, threads);
+	size_kernel(blocks, threads);
 
 	// Accumulator
 	HGAccumulator<uint32_t> _dga;
@@ -441,7 +446,7 @@ void ConfirmMessageToSend_allNodes_cuda(struct CUDA_Context* ctx, const uint32_t
 	// Sizing
 	dim3 blocks;
 	dim3 threads;
-	kernel_sizing(blocks, threads);
+	size_kernel(blocks, threads);
 
 	// Kernel call
 	ConfirmMessageToSend <<<blocks, threads>>>(
@@ -460,7 +465,7 @@ void SendAPSPMessages_nodesWithEdges_cuda(struct CUDA_Context* ctx, uint32_t & d
 	// Sizing
 	dim3 blocks;
 	dim3 threads;
-	kernel_sizing(blocks, threads);
+	size_kernel(blocks, threads);
 
 	// Accumulator
 	HGAccumulator<uint32_t> _dga;
@@ -490,7 +495,7 @@ void RoundUpdate_allNodes_cuda(struct CUDA_Context* ctx) {
 	// Sizing
 	dim3 blocks;
 	dim3 threads;
-	kernel_sizing(blocks, threads);
+	size_kernel(blocks, threads);
 
 	// Kernel call
 	RoundUpdate <<<blocks, threads>>>(
@@ -509,7 +514,7 @@ void BackFindMessageToSend_allNodes_cuda(struct CUDA_Context* ctx,
 	// Sizing
 	dim3 blocks;
 	dim3 threads;
-	kernel_sizing(blocks, threads);
+	size_kernel(blocks, threads);
 
 	// Kernel call
 	BackFindMessageToSend <<<blocks, threads>>>(
@@ -531,7 +536,7 @@ void BackProp_nodesWithEdges_cuda(struct CUDA_Context* ctx) {
 	// Sizing
 	dim3 blocks;
 	dim3 threads;
-	kernel_sizing(blocks, threads);
+	size_kernel(blocks, threads);
 
 	// Kernel call
 	BackProp <<<blocks, threads>>>(
@@ -556,7 +561,7 @@ void BC_masterNodes_cuda(struct CUDA_Context* ctx,
 	// Sizing
 	dim3 blocks;
 	dim3 threads;
-	kernel_sizing(blocks, threads);
+	size_kernel(blocks, threads);
 
 	// Kernel call
 	BC <<<blocks, threads>>>(
@@ -578,7 +583,7 @@ void Sanity_masterNodes_cuda(struct CUDA_Context* ctx,
 	// Sizing
 	dim3 blocks;
 	dim3 threads;
-	kernel_sizing(blocks, threads);
+	size_kernel(blocks, threads);
 
 	// Accumulators
 	HGAccumulator<float> _DGAccumulator_sum;
