@@ -1,5 +1,14 @@
 #include "bc_mr_cuda.cuh"
-#include <new>
+
+// *******************************
+// ** Constants
+// ********************************
+
+// Capacity limit for each of the maps (fixed length)
+#define MAP_CAPACITY   20
+
+// Max number of MB for device heap (mallocs on device)
+#define DEVICE_HEAP_MB 100
 
 // *******************************
 // ** Helper functions (device code)
@@ -17,12 +26,6 @@ unsigned getArrayIndex(unsigned node, unsigned index) {
 // *************************
 // ** Kernels (device code)
 // *************************
-
-// Needed to set device field
-__global__
-void SetVectorSize(unsigned vectorSize) {
-	flatMapArraySize = vectorSize;
-}
 
 __global__
 void InitializeIteration(
@@ -357,26 +360,26 @@ void FinishMemoryInit_cuda(struct CUDA_Context* ctx, unsigned vectorSize, uint32
 	load_array_field_CUDA(ctx, &ctx->dependencyValues, num_hosts);
 
 	// Copy vectorSize to device for utility
-	SetVectorSize<<<1, 1>>>(vectorSize);
+	cudaMemcpyToSymbol(flatMapArraySize, &vectorSize, sizeof(unsigned), 0, cudaMemcpyHostToDevice);
+	check_cuda_kernel;
 
 	// Clear the dTree storage (only doing this once)
 	ctx->dTree.data.zero_gpu();
 
 	// Now, initialize all of the tree's internal data structures
 	unsigned N = ctx->gg.nnodes;
-	unsigned capacity = 20; // Fixed value for map size, hope it's enough...
 	for (unsigned i = 0; i < N; i++) {
 		CUDATree* tree = &(ctx->dTree.data.gpu_wr_ptr()[i]);
 
 		// Allocate a map on the device
-		CUDAMap* deviceMap = CUDAMap::getDeviceMap(numSources, capacity);
+		CUDAMap* deviceMap = CUDAMap::getDeviceMap(numSources, MAP_CAPACITY);
 
 		// Set pointer on device from tree to map
 		tree->setMap(deviceMap);
 	}
 
 	// Now, set enough space for the dynamically allocated bitsets
-	size_t heapLimit = 100 * 1024 * 1024; // 100 MB
+	size_t heapLimit = DEVICE_HEAP_MB * 1024 * 1024; // MB
 	cudaDeviceSetLimit(cudaLimitMallocHeapSize, heapLimit);
 
 	// Finish op
