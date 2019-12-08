@@ -53,8 +53,13 @@ public:
   __device__ __host__ DynamicBitset(size_t nbits) { alloc(nbits); }
 
   __device__ __host__ ~DynamicBitset() {
-    if (bit_vector != NULL)
-      cudaFree(bit_vector);
+    if (bit_vector != NULL) {
+#ifdef __CUDA_ARCH__
+    	free(bit_vector);
+#else
+    	cudaFree(bit_vector);
+#endif
+    }
   }
 
   __device__ __host__ void alloc(size_t nbits) {
