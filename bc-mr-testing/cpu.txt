@@ -1,0 +1,308 @@
+WARNING: Numa Support Not configured (install libnuma-dev).  Assuming numa topology matches socket topology.
+D-Galois Benchmark Suite v5.0.0 (unknown)
+Copyright (C) 2018 The University of Texas at Austin
+http://iss.ices.utexas.edu/galois/
+
+application: Min-Rounds Betweeness Centrality
+Min-Rounds Betweeness Centrality on Distributed Galois.
+
+[0] InitializeGraph
+[0] Master distribution time : 3.3e-05 seconds to read 128 bytes in 14 seeks (3.87879 MBPS)
+[0] Starting graph reading.
+[0] Reading graph complete.
+[0] Edge inspection time: 0.001278 seconds to read 2621432 bytes (2051.2 MBPS)
+Total nodes: 32768
+Total edges: 524288
+[0] Master nodes: 32768
+[0] Mirror nodes: 0
+[0] Nodes with edges: 32768
+[0] Edges: 524288
+Loading edge-data while creating edges
+[0] Edge loading time: 0.000811 seconds to read 2621432 bytes (3232.35 MBPS)
+[0] Graph construction complete.
+[0] Run 0 started
+Begin batch #0
+Begin batch #1
+Begin batch #2
+Begin batch #3
+Begin batch #4
+Begin batch #5
+Begin batch #6
+Begin batch #7
+Max BC is 424.448
+Min BC is 0
+BC sum is 144435
+[0] Run 1 started
+Begin batch #0
+Begin batch #1
+Begin batch #2
+Begin batch #3
+Begin batch #4
+Begin batch #5
+Begin batch #6
+Begin batch #7
+Max BC is 424.448
+Min BC is 0
+BC sum is 144435
+[0] Run 2 started
+Begin batch #0
+Begin batch #1
+Begin batch #2
+Begin batch #3
+Begin batch #4
+Begin batch #5
+Begin batch #6
+Begin batch #7
+Max BC is 424.448
+Min BC is 0
+BC sum is 144435
+[0] Run 3 started
+Begin batch #0
+Begin batch #1
+Begin batch #2
+Begin batch #3
+Begin batch #4
+Begin batch #5
+Begin batch #6
+Begin batch #7
+Max BC is 424.448
+Min BC is 0
+BC sum is 144435
+[0] Run 4 started
+Begin batch #0
+Begin batch #1
+Begin batch #2
+Begin batch #3
+Begin batch #4
+Begin batch #5
+Begin batch #6
+Begin batch #7
+Max BC is 424.448
+Min BC is 0
+BC sum is 144435
+[0] Run 5 started
+Begin batch #0
+Begin batch #1
+Begin batch #2
+Begin batch #3
+Begin batch #4
+Begin batch #5
+Begin batch #6
+Begin batch #7
+Max BC is 424.448
+Min BC is 0
+BC sum is 144435
+[0] Run 6 started
+Begin batch #0
+Begin batch #1
+Begin batch #2
+Begin batch #3
+Begin batch #4
+Begin batch #5
+Begin batch #6
+Begin batch #7
+Max BC is 424.448
+Min BC is 0
+BC sum is 144435
+[0] Run 7 started
+Begin batch #0
+Begin batch #1
+Begin batch #2
+Begin batch #3
+Begin batch #4
+Begin batch #5
+Begin batch #6
+Begin batch #7
+Max BC is 424.448
+Min BC is 0
+BC sum is 144435
+[0] Run 8 started
+Begin batch #0
+Begin batch #1
+Begin batch #2
+Begin batch #3
+Begin batch #4
+Begin batch #5
+Begin batch #6
+Begin batch #7
+Max BC is 424.448
+Min BC is 0
+BC sum is 144435
+[0] Run 9 started
+Begin batch #0
+Begin batch #1
+Begin batch #2
+Begin batch #3
+Begin batch #4
+Begin batch #5
+Begin batch #6
+Begin batch #7
+Max BC is 424.448
+Min BC is 0
+BC sum is 144435
+STAT_TYPE, HOST_ID, REGION, CATEGORY, TOTAL_TYPE, TOTAL
+STAT, 0, dGraph_Generic, CuSPStateRounds, HOST_0, 100
+STAT, 0, dGraph_Generic, EdgeInspection, HMAX, 1
+STAT, 0, dGraph_Generic, GraphReading, HMAX, 1
+STAT, 0, DistBench, GraphConstructTime, HMAX, 21
+STAT, 0, InitializeGraph_0, Time, HMAX, 768
+STAT, 0, InitializeIteration_0, Time, HMAX, 2111
+STAT, 0, Gluon, ReduceNumMessages_APSP_0, HSUM, 0
+STAT, 0, Gluon, BroadcastNumMessages_APSP_0, HSUM, 0
+STAT, 0, Gluon, ReduceNumMessages_DependencySync_0, HSUM, 0
+STAT, 0, Gluon, ReduceNumMessages_APSP_1, HSUM, 0
+STAT, 0, Gluon, BroadcastNumMessages_APSP_1, HSUM, 0
+STAT, 0, Gluon, ReduceNumMessages_DependencySync_1, HSUM, 0
+STAT, 0, Gluon, Sync_DependencySync_1, HMAX, 13
+STAT, 0, Gluon, ReduceNumMessages_APSP_2, HSUM, 0
+STAT, 0, Gluon, BroadcastNumMessages_APSP_2, HSUM, 0
+STAT, 0, Gluon, ReduceNumMessages_DependencySync_2, HSUM, 0
+STAT, 0, Gluon, ReduceNumMessages_APSP_3, HSUM, 0
+STAT, 0, Gluon, BroadcastNumMessages_APSP_3, HSUM, 0
+STAT, 0, Gluon, ReduceNumMessages_DependencySync_3, HSUM, 0
+STAT, 0, Gluon, ReduceNumMessages_APSP_4, HSUM, 0
+STAT, 0, Gluon, BroadcastNumMessages_APSP_4, HSUM, 0
+STAT, 0, Gluon, Sync_APSP_4, HMAX, 13
+STAT, 0, Gluon, ReduceNumMessages_DependencySync_4, HSUM, 0
+STAT, 0, Gluon, ReduceNumMessages_APSP_5, HSUM, 0
+STAT, 0, Gluon, BroadcastNumMessages_APSP_5, HSUM, 0
+STAT, 0, Gluon, ReduceNumMessages_DependencySync_5, HSUM, 0
+STAT, 0, Gluon, ReduceNumMessages_APSP_6, HSUM, 0
+STAT, 0, Gluon, BroadcastNumMessages_APSP_6, HSUM, 0
+STAT, 0, Gluon, ReduceNumMessages_DependencySync_6, HSUM, 0
+STAT, 0, Gluon, ReduceNumMessages_APSP_7, HSUM, 0
+STAT, 0, Gluon, BroadcastNumMessages_APSP_7, HSUM, 0
+STAT, 0, Gluon, ReduceNumMessages_DependencySync_7, HSUM, 0
+STAT, 0, Gluon, ReduceNumMessages_APSP_8, HSUM, 0
+STAT, 0, Gluon, BroadcastNumMessages_APSP_8, HSUM, 0
+STAT, 0, Gluon, ReduceNumMessages_DependencySync_8, HSUM, 0
+STAT, 0, Gluon, Sync_DependencySync_8, HMAX, 12
+STAT, 0, Gluon, ReduceNumMessages_APSP_9, HSUM, 0
+STAT, 0, Gluon, BroadcastNumMessages_APSP_9, HSUM, 0
+STAT, 0, Gluon, ReduceNumMessages_DependencySync_9, HSUM, 0
+STAT, 0, Gluon, Sync_APSP_9, HMAX, 13
+STAT, 0, SendAPSPMessages_0, Time, HMAX, 92
+STAT, 0, BackProp_0, Time, HMAX, 2
+STAT, 0, BC_0, Time, HMAX, 1132
+STAT, 0, MRBC, NumForwardRounds_0, HOST_0, 134
+STAT, 0, MRBC, NumBackwardRounds_0, HOST_0, 126
+STAT, 0, MRBC, TotalRounds_0, HOST_0, 260
+STAT, 0, MRBC, Timer_0, HMAX, 3605
+STAT, 0, MRBC, NumForwardRounds_1, HOST_0, 134
+STAT, 0, MRBC, NumBackwardRounds_1, HOST_0, 126
+STAT, 0, MRBC, TotalRounds_1, HOST_0, 260
+STAT, 0, MRBC, Timer_1, HMAX, 3532
+STAT, 0, MRBC, NumForwardRounds_2, HOST_0, 134
+STAT, 0, MRBC, NumBackwardRounds_2, HOST_0, 126
+STAT, 0, MRBC, TotalRounds_2, HOST_0, 260
+STAT, 0, MRBC, Timer_2, HMAX, 3499
+STAT, 0, MRBC, NumForwardRounds_3, HOST_0, 134
+STAT, 0, MRBC, NumBackwardRounds_3, HOST_0, 126
+STAT, 0, MRBC, TotalRounds_3, HOST_0, 260
+STAT, 0, MRBC, Timer_3, HMAX, 3392
+STAT, 0, MRBC, NumForwardRounds_4, HOST_0, 134
+STAT, 0, MRBC, NumBackwardRounds_4, HOST_0, 126
+STAT, 0, MRBC, TotalRounds_4, HOST_0, 260
+STAT, 0, MRBC, Timer_4, HMAX, 3568
+STAT, 0, MRBC, NumForwardRounds_5, HOST_0, 134
+STAT, 0, MRBC, NumBackwardRounds_5, HOST_0, 126
+STAT, 0, MRBC, TotalRounds_5, HOST_0, 260
+STAT, 0, MRBC, Timer_5, HMAX, 3393
+STAT, 0, MRBC, NumForwardRounds_6, HOST_0, 134
+STAT, 0, MRBC, NumBackwardRounds_6, HOST_0, 126
+STAT, 0, MRBC, TotalRounds_6, HOST_0, 260
+STAT, 0, MRBC, Timer_6, HMAX, 3314
+STAT, 0, MRBC, NumForwardRounds_7, HOST_0, 134
+STAT, 0, MRBC, NumBackwardRounds_7, HOST_0, 126
+STAT, 0, MRBC, TotalRounds_7, HOST_0, 260
+STAT, 0, MRBC, Timer_7, HMAX, 3443
+STAT, 0, MRBC, NumForwardRounds_8, HOST_0, 134
+STAT, 0, MRBC, NumBackwardRounds_8, HOST_0, 126
+STAT, 0, MRBC, TotalRounds_8, HOST_0, 260
+STAT, 0, MRBC, Timer_8, HMAX, 3376
+STAT, 0, MRBC, NumForwardRounds_9, HOST_0, 134
+STAT, 0, MRBC, NumBackwardRounds_9, HOST_0, 126
+STAT, 0, MRBC, TotalRounds_9, HOST_0, 260
+STAT, 0, MRBC, Timer_9, HMAX, 3321
+STAT, 0, MRBC, TIMER_GRAPH_INIT, HMAX, 768
+STAT, 0, MRBC, TimerTotal, HMAX, 35343
+STAT, 0, FindMessageToSync_0, Time, HMAX, 13
+STAT, 0, ConfirmMessageToSend_0, Time, HMAX, 4
+STAT, 0, RoundUpdate_0, Time, HMAX, 14
+STAT, 0, InitializeIteration_1, Time, HMAX, 2042
+STAT, 0, SendAPSPMessages_1, Time, HMAX, 74
+STAT, 0, ConfirmMessageToSend_1, Time, HMAX, 17
+STAT, 0, BackFindMessageToSend_1, Time, HMAX, 9
+STAT, 0, BackProp_1, Time, HMAX, 13
+STAT, 0, BC_1, Time, HMAX, 1109
+STAT, 0, RoundUpdate_1, Time, HMAX, 14
+STAT, 0, FindMessageToSync_1, Time, HMAX, 1
+STAT, 0, InitializeIteration_2, Time, HMAX, 1966
+STAT, 0, SendAPSPMessages_2, Time, HMAX, 104
+STAT, 0, BackProp_2, Time, HMAX, 26
+STAT, 0, BC_2, Time, HMAX, 1173
+STAT, 0, ConfirmMessageToSend_2, Time, HMAX, 13
+STAT, 0, RoundUpdate_2, Time, HMAX, 1
+STAT, 0, InitializeIteration_3, Time, HMAX, 1967
+STAT, 0, SendAPSPMessages_3, Time, HMAX, 62
+STAT, 0, ConfirmMessageToSend_3, Time, HMAX, 26
+STAT, 0, BackProp_3, Time, HMAX, 13
+STAT, 0, BackFindMessageToSend_3, Time, HMAX, 24
+STAT, 0, BC_3, Time, HMAX, 1063
+STAT, 0, RoundUpdate_3, Time, HMAX, 1
+STAT, 0, InitializeIteration_4, Time, HMAX, 1931
+STAT, 0, SendAPSPMessages_4, Time, HMAX, 69
+STAT, 0, FindMessageToSync_4, Time, HMAX, 13
+STAT, 0, BackFindMessageToSend_4, Time, HMAX, 39
+STAT, 0, BackProp_4, Time, HMAX, 13
+STAT, 0, BC_4, Time, HMAX, 1244
+STAT, 0, ConfirmMessageToSend_4, Time, HMAX, 1
+STAT, 0, RoundUpdate_4, Time, HMAX, 15
+STAT, 0, InitializeIteration_5, Time, HMAX, 1941
+STAT, 0, FindMessageToSync_5, Time, HMAX, 7
+STAT, 0, SendAPSPMessages_5, Time, HMAX, 70
+STAT, 0, RoundUpdate_5, Time, HMAX, 15
+STAT, 0, BackProp_5, Time, HMAX, 27
+STAT, 0, BC_5, Time, HMAX, 1094
+STAT, 0, BackFindMessageToSend_5, Time, HMAX, 15
+STAT, 0, InitializeIteration_6, Time, HMAX, 1906
+STAT, 0, SendAPSPMessages_6, Time, HMAX, 51
+STAT, 0, ConfirmMessageToSend_6, Time, HMAX, 47
+STAT, 0, BackFindMessageToSend_6, Time, HMAX, 26
+STAT, 0, BC_6, Time, HMAX, 1060
+STAT, 0, RoundUpdate_6, Time, HMAX, 2
+STAT, 0, BackProp_6, Time, HMAX, 13
+STAT, 0, InitializeIteration_7, Time, HMAX, 1971
+STAT, 0, SendAPSPMessages_7, Time, HMAX, 51
+STAT, 0, ConfirmMessageToSend_7, Time, HMAX, 51
+STAT, 0, BackFindMessageToSend_7, Time, HMAX, 11
+STAT, 0, BackProp_7, Time, HMAX, 11
+STAT, 0, BC_7, Time, HMAX, 1121
+STAT, 0, FindMessageToSync_7, Time, HMAX, 2
+STAT, 0, RoundUpdate_7, Time, HMAX, 2
+STAT, 0, InitializeIteration_8, Time, HMAX, 1905
+STAT, 0, SendAPSPMessages_8, Time, HMAX, 46
+STAT, 0, FindMessageToSync_8, Time, HMAX, 26
+STAT, 0, BackFindMessageToSend_8, Time, HMAX, 13
+STAT, 0, BackProp_8, Time, HMAX, 13
+STAT, 0, BC_8, Time, HMAX, 1108
+STAT, 0, ConfirmMessageToSend_8, Time, HMAX, 12
+STAT, 0, RoundUpdate_8, Time, HMAX, 14
+STAT, 0, InitializeIteration_9, Time, HMAX, 1892
+STAT, 0, SendAPSPMessages_9, Time, HMAX, 33
+STAT, 0, ConfirmMessageToSend_9, Time, HMAX, 26
+STAT, 0, FindMessageToSync_9, Time, HMAX, 13
+STAT, 0, BackFindMessageToSend_9, Time, HMAX, 13
+STAT, 0, BC_9, Time, HMAX, 1099
+STAT, 0, BackProp_9, Time, HMAX, 13
+STAT, 0, RoundUpdate_9, Time, HMAX, 1
+STAT, 0, Gluon, ReplicationFactor, HOST_0, 1
+PARAM, 0, DistBench, CommandLine, HOST_0, lonestardist/bc/bc_mr /net/ohm/export/iss/inputs/scalefree/rmat15.gr -graphTranspose=/net/ohm/export/iss/inputs/scalefree/transpose/rmat15.tgr -pset=c -numRoundSources=4096 -t=8 -runs=10
+PARAM, 0, DistBench, Threads, HOST_0, 8
+PARAM, 0, DistBench, Hosts, HOST_0, 1
+PARAM, 0, DistBench, Runs, HOST_0, 10
+PARAM, 0, DistBench, Run_UUID, HOST_0, 63401d9d-1a3e-4d7a-a127-3623a938d1b2
+PARAM, 0, DistBench, Input, HOST_0, /net/ohm/export/iss/inputs/scalefree/rmat15.gr
+PARAM, 0, DistBench, PartitionScheme, HOST_0, oec
+PARAM, 0, DistBench, Hostname, HOST_0, tuxedo.ices.utexas.edu
+PARAM, 0, dGraph, GenericPartitioner, HOST_0, 0
