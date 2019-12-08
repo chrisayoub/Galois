@@ -64,6 +64,7 @@ public:
     num_bits          = nbits;
 #ifdef __CUDA_ARCH__
     bit_vector = (uint64_t*) malloc(vec_size() * sizeof(uint64_t));
+    assert(bit_vector != nullptr);
 #else
     CUDA_SAFE_CALL(cudaMalloc(&bit_vector, vec_size() * sizeof(uint64_t)));
 #endif

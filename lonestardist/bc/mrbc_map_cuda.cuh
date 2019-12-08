@@ -30,33 +30,10 @@ private:
 	// Resize exponentially
 	__device__
 	void resize() {
-		const double LOAD_FACTOR = 0.7;
-		if (size <= LOAD_FACTOR * length) {
-			// Don't need to resize if we have enough space already
-			return;
-		}
-
-		// TODO fix
-		printf("ERROR IMPLEMENT RESIZE!!!!! \n");
-
-		// Allocate new memory
-//		unsigned newLength = length * 2;
-//		size_t numBytes = newLength * sizeof(MapPair);
-//		MapPair* newStorage = (MapPair*) malloc(numBytes);
-//		memset(newStorage, 0, numBytes);
-//
-//		// Re-hash and place elements in new storage
-//		for (unsigned i = 0; i < length; i++) {
-//			MapPair kv = map[i];
-//			if (kv.used) {
-//				insert(kv.key, kv.value, newStorage, newLength);
-//			}
-//		}
-//
-//		// Free old memory, update pointer
-//		free(map);
-//		map = newStorage;
-//		length = newLength;
+		// Currently fails on resizing, need more work for this...
+		// Can't free() on device if cudaMalloc() on host
+		// https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#memory-allocation-and-lifetime
+		assert(size < length - 1);
 	}
 
 	// Return the hash of a key
@@ -99,28 +76,29 @@ private:
 
 public:
 	__host__
-	static CUDAMap* getDeviceMap(uint32_t numSources) {
-		unsigned INIT_CAP = 20;
-		unsigned initSize = 0;
-
+	static CUDAMap* getDeviceMap(uint32_t numSources, unsigned capacity) {
 		// Allocate a map on the device
 		CUDAMap* deviceMap;
 		cudaMalloc(&deviceMap, sizeof(CUDAMap));
+		check_cuda_kernel;
 
 		// Initial values of map
-		// TODO FIX THIS SO IT WILL WORK
-//		cudaMemcpy(deviceMap->length, &INIT_CAP, sizeof(unsigned), cudaMemcpyHostToDevice);
-//		cudaMemcpy(deviceMap->numSources, &numSources, sizeof(uint32_t), cudaMemcpyHostToDevice);
-//		cudaMemcpy(deviceMap->size, &initSize, sizeof(unsigned), cudaMemcpyHostToDevice);
+		cudaMemcpy(&deviceMap->length, &capacity, sizeof(unsigned), cudaMemcpyHostToDevice);
+		cudaMemcpy(&deviceMap->numSources, &numSources, sizeof(uint32_t), cudaMemcpyHostToDevice);
+		cudaMemset(&deviceMap->size, 0, sizeof(unsigned));
 
 		// Allocate actual array
 		MapPair* deviceArray;
-		size_t numBytes = sizeof(MapPair) * INIT_CAP;
+		size_t numBytes = sizeof(MapPair) * capacity;
 		cudaMalloc(&deviceArray, numBytes);
+		check_cuda_kernel;
 		cudaMemset(deviceArray, 0, numBytes);
 
 		// Set pointer to array
-		cudaMemcpy(deviceMap->map, deviceArray, sizeof(MapPair*), cudaMemcpyHostToDevice);
+		cudaMemcpy(&deviceMap->map, &deviceArray, sizeof(MapPair*), cudaMemcpyHostToDevice);
+
+		// Finish ops
+		cudaDeviceSynchronize();
 
 		// Return device pointer
 		return deviceMap;

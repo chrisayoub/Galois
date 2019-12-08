@@ -363,15 +363,21 @@ void FinishMemoryInit_cuda(struct CUDA_Context* ctx, unsigned vectorSize, uint32
 	ctx->dTree.data.zero_gpu();
 
 	// Now, initialize all of the tree's internal data structures
-	for (unsigned i = 0; i < ctx->gg.nnodes; i++) {
-		CUDATree& tree = ctx->dTree.data.gpu_wr_ptr()[i];
+	unsigned N = ctx->gg.nnodes;
+	unsigned capacity = 20; // Fixed value for map size, hope it's enough...
+	for (unsigned i = 0; i < N; i++) {
+		CUDATree* tree = &(ctx->dTree.data.gpu_wr_ptr()[i]);
 
 		// Allocate a map on the device
-		CUDAMap* deviceMap = CUDAMap::getDeviceMap(numSources);
+		CUDAMap* deviceMap = CUDAMap::getDeviceMap(numSources, capacity);
 
 		// Set pointer on device from tree to map
-		cudaMemcpy(tree.map, deviceMap, sizeof(CUDAMap*), cudaMemcpyHostToDevice);
+		cudaMemcpy(&tree->map, &deviceMap, sizeof(CUDAMap*), cudaMemcpyHostToDevice);
 	}
+
+	// Now, set enough space for the dynamically allocated bitsets
+	size_t heapLimit = 100 * 1024 * 1024; // 100 MB
+	cudaDeviceSetLimit(cudaLimitMallocHeapSize, heapLimit);
 
 	// Finish op
 	cudaDeviceSynchronize();
