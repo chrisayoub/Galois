@@ -1,0 +1,10 @@
+STAT, 0, BC, Timer_0, HMAX, 4323
+STAT, 0, BC, Timer_1, HMAX, 4306
+STAT, 0, BC, Timer_2, HMAX, 4351
+STAT, 0, BC, Timer_3, HMAX, 4392
+STAT, 0, BC, Timer_4, HMAX, 4505
+STAT, 0, BC, Timer_5, HMAX, 4444
+STAT, 0, BC, Timer_6, HMAX, 4431
+STAT, 0, BC, Timer_7, HMAX, 4520
+STAT, 0, BC, Timer_8, HMAX, 4431
+STAT, 0, BC, Timer_9, HMAX, 4559
