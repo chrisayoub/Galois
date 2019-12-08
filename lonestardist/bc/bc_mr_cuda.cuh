@@ -105,26 +105,9 @@ void reset_CUDA_context(struct CUDA_Context* ctx) {
 	ctx->roundIndexToSend.data.zero_gpu();
 }
 
-
 float get_node_betweeness_centrality_cuda(struct CUDA_Context* ctx, unsigned LID) {
 	float *betweeness_centrality = ctx->bc.data.cpu_rd_ptr();
 	return betweeness_centrality[LID];
-}
-
-// DEBUG: Used for verifying memory
-void print_cuda_mem_usage() {
-// https://devtalk.nvidia.com/default/topic/487541/best-way-to-report-memory-consumption-in-cuda-/?offset=1
-    size_t free_byte ;
-    size_t total_byte ;
-
-    cudaMemGetInfo(&free_byte, &total_byte);
-
-    double free_db = (double) free_byte;
-    double total_db = (double) total_byte;
-    double used_db = total_db - free_db;
-
-    printf("GPU memory usage: used = %f, free = %f MB, total = %f MB\n",
-        used_db/1024.0/1024.0, free_db/1024.0/1024.0, total_db/1024.0/1024.0);
 }
 
 // Macro functions for sync structures

@@ -31,6 +31,9 @@ class CUDATree {
 		map->clear();
 	}
 
+	// internal map used for hashing/storage
+	CUDAMap* map;
+
 	//! number of sources that have already been sent out
 	uint32_t numSentSources;
 	//! number of non-infinity values (i.e. number of sources added already)
@@ -42,8 +45,11 @@ class CUDATree {
 	uint32_t maxDistance, curDistance, endDistance;
 
 public:
-	// internal map used for hashing/storage
-	CUDAMap* map;
+	__host__
+	void setMap(CUDAMap* deviceMap) {
+		// Set pointer on device from tree to map
+		cudaMemcpy(&map, &deviceMap, sizeof(CUDAMap*), cudaMemcpyHostToDevice);
+	}
 
 	__device__
 	void initialize() {

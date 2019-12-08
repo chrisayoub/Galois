@@ -337,7 +337,7 @@ uint64_t* copyVectorToDevice(const std::vector<uint64_t>& vec) {
 	return arr;
 }
 
-// Need to reduce number of threads so it works
+// Useful in case want to change kernel sizing easily
 void size_kernel(dim3& blocks, dim3& threads) {
 	kernel_sizing(blocks, threads);
 }
@@ -372,7 +372,7 @@ void FinishMemoryInit_cuda(struct CUDA_Context* ctx, unsigned vectorSize, uint32
 		CUDAMap* deviceMap = CUDAMap::getDeviceMap(numSources, capacity);
 
 		// Set pointer on device from tree to map
-		cudaMemcpy(&tree->map, &deviceMap, sizeof(CUDAMap*), cudaMemcpyHostToDevice);
+		tree->setMap(deviceMap);
 	}
 
 	// Now, set enough space for the dynamically allocated bitsets
